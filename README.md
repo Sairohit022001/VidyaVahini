@@ -1,4 +1,4 @@
-cat > README.md <<EOL
+
 # VidyaVāhinī
 
 ## Project Overview
