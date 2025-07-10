@@ -8,11 +8,11 @@ VidyaVāhinī is an offline-first, multilingual, multimodal education platform p
 
 | Member    | Role                     | LinkedIn                                      |
 |-----------|--------------------------|-----------------------------------------------|
-| Sairohith Bukka     | Team Leader, Backend & Agent Architecture | [LinkedIn](https://www.linkedin.com/in/sairohithbukka/) |
-| Nanditha Vuppunuthula | BhāṣāGuru Agent - Translation & TTS | [LinkedIn](https://www.linkedin.com/in/nandithav/)        |
-| Amritha S | Frontend UI & Offline Sync | [LinkedIn](https://www.linkedin.com/in/amritha-s-oo/)      |
-| Srujana Jasmine Komarabathina | LessonPlanner & QuizAgent | [LinkedIn](https://www.linkedin.com/in/srujana-jasmine-komarabathina-4234a423a/) |
-| Deepanshi Bansal | Backend API & Deployment | [LinkedIn](https://www.linkedin.com/in/deepanshi-bansal2002/) |
+| Sairohith Bukka     | Team Leader | [LinkedIn](https://www.linkedin.com/in/sairohithbukka/) |
+| Nanditha Vuppunuthula | [LinkedIn](https://www.linkedin.com/in/nandithav/)        |
+| Amritha S  | [LinkedIn](https://www.linkedin.com/in/amritha-s-oo/)      |
+| Srujana Jasmine Komarabathina  | [LinkedIn](https://www.linkedin.com/in/srujana-jasmine-komarabathina-4234a423a/) |
+| Deepanshi Bansal  | [LinkedIn](https://www.linkedin.com/in/deepanshi-bansal2002/) |
 
 ## Project Goals
 - Develop an AI-driven lesson planner generating rich educational content.
