@@ -8,7 +8,7 @@ VidyaVāhinī is an offline-first, multilingual, multimodal education platform p
 
 | Member    | Role                     | LinkedIn                                      |
 |-----------|--------------------------|-----------------------------------------------|
-| Rohi      | Team Leader, Backend & Agent Architecture | [LinkedIn](https://www.linkedin.com/in/sairohithbukka/) |
+| Sairohith Bukka     | Team Leader, Backend & Agent Architecture | [LinkedIn](https://www.linkedin.com/in/sairohithbukka/) |
 | Nanditha Vuppunuthula | BhāṣāGuru Agent - Translation & TTS | [LinkedIn](https://www.linkedin.com/in/nandithav/)        |
 | Amritha S | Frontend UI & Offline Sync | [LinkedIn](https://www.linkedin.com/in/amritha-s-oo/)      |
 | Srujana Jasmine Komarabathina | LessonPlanner & QuizAgent | [LinkedIn](https://www.linkedin.com/in/srujana-jasmine-komarabathina-4234a423a/) |
@@ -42,4 +42,3 @@ VidyaVāhinī is an offline-first, multilingual, multimodal education platform p
 
 ## Contact
 For questions or contributions, please reach out to the team leader, Sairohith Bukka.
-EOL
