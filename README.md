@@ -1,5 +1,5 @@
 cat > README.md <<EOL
-# VidyaVāhinī-Agentic
+# VidyaVāhinī
 
 ## Project Overview
 VidyaVāhinī is an offline-first, multilingual, multimodal education platform powered by AI agents, designed to empower teachers and students in multi-grade classrooms with personalized lessons, quizzes, and voice-enabled regional dialect support.
@@ -41,5 +41,5 @@ VidyaVāhinī is an offline-first, multilingual, multimodal education platform p
 ---
 
 ## Contact
-For questions or contributions, please reach out to the team leader, Rohi.
+For questions or contributions, please reach out to the team leader, Sairohith Bukka.
 EOL
