@@ -33,9 +33,7 @@ VidyaVāhinī is an offline-first, multilingual, multimodal education platform p
 
 ---
 
-## Getting Started
 
-> _Instructions coming soon_
 
 ---
 
