@@ -31,9 +31,3 @@ VidyaVāhinī is an offline-first, multilingual, multimodal education platform p
 - main - Production-ready stable code
 - dev - Active development branch
 
----
-
-
-
----
-
