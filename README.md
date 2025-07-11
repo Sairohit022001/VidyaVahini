@@ -39,5 +39,3 @@ VidyaVāhinī is an offline-first, multilingual, multimodal education platform p
 
 ---
 
-## Contact
-For questions or contributions, please reach out to the team leader, Sairohith Bukka.
