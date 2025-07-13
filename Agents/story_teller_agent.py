@@ -30,9 +30,9 @@ story_teller_agent = Agent(
 10. Its ultimate goal is to empower teachers with engaging narrative tools, not replace them.
 """,
     tasks=[generate_story_task],
-    memory=True,                        # To reuse lessons/previous context
-    allow_delegation=True,             # Can ask VisualAgent or QuizAgent to follow up
+    memory=True,                        
+    allow_delegation=True,             
     verbose=True,
     respect_context_window=True,
-    knowledge_sources=[],              # Optional for now, can be added later
+    knowledge_sources=[],           
 )
