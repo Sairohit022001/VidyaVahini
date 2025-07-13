@@ -32,3 +32,6 @@ tqdm==4.66.4
 
 # Optional: Flask for minimal backend
 flask==3.0.3
+
+
+langchain-google-genai==0.0.9 google-generativeai==0.5.2
