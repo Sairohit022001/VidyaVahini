@@ -62,3 +62,12 @@ Your mission is to uplift classrooms by turning teacher ideas into structured ed
         "delegates_to": ["QuizAgent", "StoryTellerAgent", "VisualAgent", "MultimodalResearchAgent"],
     }
 )
+lesson_planner_agent.add_output("lesson_plan_json")
+lesson_planner_agent.add_output("core_concepts_list")
+lesson_planner_agent.add_output("lesson_summary")
+lesson_planner_agent.add_output("suggested_agents")
+lesson_planner_agent.add_output("recommended_visuals")
+lesson_planner_agent.add_output("linked_story_prompts")
+lesson_planner_agent.add_output("quiz_questions")
+lesson_planner_agent.add_output("regional_language_support")
+lesson_planner_agent.add_output("offline_exportable_content")

@@ -26,3 +26,8 @@ It also supports offline learning by syncing generated audio via IndexedDB and F
     allow_delegation=True,
     verbose=True
 )
+voice_tutor_agent.add_input("LessonPlannerAgent")
+voice_tutor_agent.add_input("StoryTellerAgent")
+voice_tutor_agent.add_output("ssml_clusters")
+voice_tutor_agent.add_output("audio_links")
+voice_tutor_agent.add_output("regional_tts_output")

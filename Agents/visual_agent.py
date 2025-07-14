@@ -48,3 +48,8 @@ visual_agent = Agent(
     verbose=True,
     memory=True
 )
+visual_agent.add_input("LessonPlannerAgent")
+visual_agent.add_input("StoryTellerAgent")
+visual_agent.add_output("dalle_prompts")
+visual_agent.add_output("generated_images")
+visual_agent.add_output("scene_descriptions")

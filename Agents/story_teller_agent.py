@@ -36,3 +36,10 @@ story_teller_agent = Agent(
     respect_context_window=True,
     knowledge_sources=[],           
 )
+story_teller_agent.add_input("LessonPlannerAgent")
+story_teller_agent.add_output("story_title")
+story_teller_agent.add_output("story_body")
+story_teller_agent.add_output("moral")
+story_teller_agent.add_output("visual_prompts")
+story_teller_agent.add_output("localized_dialect_story")
+story_teller_agent.add_output("audio_narration")

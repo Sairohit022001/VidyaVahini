@@ -27,3 +27,11 @@ and tracks progress for teacher dashboards.
     allow_delegation=False,
     verbose=True
 )
+quiz_agent.add_input("LessonPlannerAgent")
+quiz_agent.add_input("StoryTellerAgent")  # Optional: for story-based quizzes
+quiz_agent.add_input("VoiceTutorAgent")  # Optional: for audio narration of quizzes
+quiz_agent.add_input("BhāṣāGuru")  # Optional: for dialect-specific audio
+quiz_agent.add_output("quiz_json")
+quiz_agent.add_output("adaptive_quiz_set")
+quiz_agent.add_output("student_scores")
+quiz_agent.add_output("retry_feedback_report")
