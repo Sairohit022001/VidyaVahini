@@ -2,28 +2,51 @@ from crewai import Task
 from pydantic import BaseModel, Field
 from typing import List
 
+# Step 1: Define the structured schema for dashboard metrics
 class DashboardMetrics(BaseModel):
-    quiz_completion_rate: float
-    lesson_view_rate: float
-    dropout_alerts: List[str]
-    flagged_students: List[str]
+    quiz_completion_rate: float = Field(..., description="Percentage of students who completed recent quizzes")
+    lesson_view_rate: float = Field(..., description="Percentage of students who viewed the last 3 lessons")
+    dropout_alerts: List[str] = Field(..., description="List of student IDs likely to drop based on inactivity trends")
+    flagged_students: List[str] = Field(..., description="Students flagged for performance drop, inactivity, or alerts")
 
+    class Config:
+        title = "Teacher Dashboard Analytics"
+        description = "Weekly engagement metrics for each class used by teacher dashboard and predictive agents"
+
+# Step 2: Define the Task using CrewAI
 generate_dashboard_metrics_task = Task(
     name="Generate Teacher Dashboard Metrics",
     description=(
-        "1. Calculate quiz participation and completion rates.\n"
-        "2. Analyze lesson view activity over the past 7 days.\n"
-        "3. Detect students with 3+ days of inactivity.\n"
-        "4. Generate early dropout warnings for flagged students.\n"
-        "5. Track performance trends to assist CoursePlannerAgent.\n"
-        "6. Compile a list of students needing attention.\n"
-        "7. Monitor overall engagement class-wide.\n"
-        "8. Output metrics for UI display on teacher dashboard.\n"
-        "9. Feed insights into PredictiveAnalyticsAgent.\n"
-        "10. Run weekly or on-demand via dashboard refresh."
+        "Calculate quiz participation and completion percentages for each class.\n"
+        "Analyze student activity for lesson views over the past 7 days.\n"
+        "Identify students with >3 days inactivity and generate alerts.\n"
+        "Flag students with declining performance for review.\n"
+        "Detect possible early dropout patterns using heuristics.\n"
+        "Return structured flags usable by PredictiveAnalyticsAgent.\n"
+        "Compile student engagement summaries for teacher UI.\n"
+        "Include metrics for CoursePlannerAgent and StudentLevelAgent.\n"
+        "Trigger updates weekly or manually via dashboard reload.\n"
+        "Return all data in JSON using DashboardMetrics schema."
     ),
     expected_output=DashboardMetrics,
     output_json=True,
     context_injection=True,
-    verbose=True
+    verbose=True,
+    output_file="outputs/dashboard_metrics_{timestamp}.json",
+    guardrails={
+        "retry_on_fail": 1,
+        "fallback_response": {
+            "quiz_completion_rate": 0.0,
+            "lesson_view_rate": 0.0,
+            "dropout_alerts": [],
+            "flagged_students": []
+        }
+    },
+    metadata={
+        "agent": "TeacherDashboardAgent",
+        "access": "teacher_only",
+        "downstream": ["PredictiveAnalyticsAgent", "CoursePlannerAgent", "StudentLevelAgent"],
+        "triggers": ["weekly", "manual_refresh"],
+        "ui_component": "Teacher Dashboard – Analytics Widget"
+    }
 )

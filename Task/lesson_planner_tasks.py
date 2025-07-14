@@ -1,34 +1,54 @@
 from crewai import Task
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List
 
-# Define the schema for the lesson output
 class LessonOutputSchema(BaseModel):
     topic_title: str = Field(..., description="Title of the lesson topic")
-    introduction: str = Field(..., description="Detailed introduction to the topic")
-    core_concepts: List[str] = Field(..., description="List of all important core concepts explained")
-    explanation: str = Field(..., description="Detailed Full-length explanation of the topic")
-    examples: Optional[List[str]] = Field(default=[], description="Real-life examples and most suitable examples to explain concepts")
-    summary: str = Field(..., description="A concise points wise summary of the topic")
+    introduction: str = Field(..., description="Introductory explanation of the topic")
+    core_concepts: List[str] = Field(..., description="Key concepts listed in bullet points")
+    explanation: str = Field(..., description="Deep explanation with cultural relevance")
+    examples: List[str] = Field(..., description="Examples for easier understanding")
+    summary: str = Field(..., description="Brief summary covering all key ideas")
     suggested_agents: List[str] = Field(
         default=["QuizAgent", "StoryTellerAgent", "VisualAgent"],
-        description="Agents recommended to continue this flow"
+        description="Agents to call next"
     )
 
-# Task for generating a lesson plan    
 generate_lesson_task = Task(
     name="Generate Lesson Plan",
     description=(
-        "Generate a full lesson plan for a given topic, level, language and grade. "
-        "Include an introduction, key concepts, deep explanation, real-world examples, and summary. "
-        "Output must follow the LessonOutputSchema JSON structure. "
-        "Use simple language if grade level is below 6. "
-        "Use medium level technical language if grade level is above 6 to 10. "
-        "Use advanced technical language if grade level is above 10. "
-        "Ensure cultural and regional relevance using the dialect provided."
-        "The output should be suitable for educational purposes and ready for use in a lesson plan by a teacher."
+        "Accept topic, grade level, and dialect.\n"
+        "Generate an introductory explanation.\n"
+        "Identify and list all core concepts.\n"
+        "Provide deep, structured explanations.\n"
+        "Include at least 2 real-world examples.\n"
+        "Ensure tone is adapted to grade level.\n"
+        "Incorporate regional language and culture.\n"
+        "Output structured JSON as per schema.\n"
+        "Make output usable for quiz and story generation.\n"
+        "Must be editable by teacher before finalizing."
     ),
     expected_output=LessonOutputSchema,
-    output_json=True,  # ✅ Important for UI and downstream agents
+    output_json=True,
     context_injection=True,
+    verbose=True,
+    output_file="outputs/lesson_output_{timestamp}.json",
+    guardrails={
+        "retry_on_fail": 1,
+        "fallback_response": {
+            "topic_title": "Topic",
+            "introduction": "Introduction not available",
+            "core_concepts": [],
+            "explanation": "Explanation failed",
+            "examples": [],
+            "summary": "Summary not generated",
+            "suggested_agents": []
+        }
+    },
+    metadata={
+        "agent": "LessonPlannerAgent",
+        "access": "teacher_only",
+        "downstream": ["QuizAgent", "StoryTellerAgent", "VisualAgent"],
+        "triggers": ["on_topic_selection"]
+    }
 )

@@ -1,28 +1,46 @@
 from crewai import Task
 from pydantic import BaseModel, Field
+from typing import List
 
-class SyncStatusOutput(BaseModel):
-    synced: bool = Field(..., description="Was sync successful?")
-    offline_records_uploaded: int = Field(..., description="How many offline items were pushed?")
-    updates_downloaded: int = Field(..., description="How many updates were pulled from server?")
-    timestamp: str = Field(..., description="Time of last sync")
+class SyncStatusSchema(BaseModel):
+    firestore_status: str = Field(..., description="Status of Firestore sync: Synced / Error / Offline")
+    indexeddb_status: str = Field(..., description="IndexedDB local cache sync: Synced / Error / Stale")
+    last_sync_timestamp: str = Field(..., description="Timestamp of last sync completion")
+    offline_students: List[str] = Field(default=[], description="List of students still offline")
 
-generate_sync_task = Task(
-    name="Handle Offline-Online Sync",
+run_sync_task = Task(
+    name="Sync Firestore with IndexedDB",
     description=(
-        "1. Detect changes made while offline using local IndexedDB.\n"
-        "2. Push unsynced changes (e.g. notes, quiz results) to Firestore.\n"
-        "3. Pull latest updates from Firestore to IndexedDB.\n"
-        "4. Perform two-way conflict resolution if data mismatch exists.\n"
-        "5. Track and record sync timestamp for next sync.\n"
-        "6. Maintain user data integrity in offline-first architecture.\n"
-        "7. Ensure that no student/teacher data is lost across sessions.\n"
-        "8. Run on reconnection or via manual trigger from dashboard.\n"
-        "9. Log sync errors and retry logic if sync fails.\n"
-        "10. Return JSON summary of sync status and statistics."
+        "Trigger Firestore ↔ IndexedDB sync operation.\n"
+        "Fetch all updated lessons, quizzes, and student data.\n"
+        "Push unsynced local data from IndexedDB to Firestore.\n"
+        "Log student offline statuses for last 24 hrs.\n"
+        "Maintain offline-first compatibility.\n"
+        "Run on dashboard open or every 5 minutes.\n"
+        "Validate if Firestore rules permit writes.\n"
+        "Catch sync errors and mark unsynced records.\n"
+        "Track last success timestamp.\n"
+        "Output SyncStatusSchema JSON for UI and logs."
     ),
-    expected_output=SyncStatusOutput,
+    expected_output=SyncStatusSchema,
     output_json=True,
     context_injection=True,
-    verbose=True
+    verbose=True,
+    output_file="outputs/sync_status_{timestamp}.json",
+    guardrails={
+        "retry_on_fail": 1,
+        "fallback_response": {
+            "firestore_status": "Error",
+            "indexeddb_status": "Stale",
+            "last_sync_timestamp": "unknown",
+            "offline_students": []
+        }
+    },
+    metadata={
+        "agent": "SyncAgent",
+        "access": "teacher_and_student",
+        "downstream": ["TeacherDashboardAgent", "CoursePlannerAgent"],
+        "triggers": ["on_dashboard_load", "on_app_start"]
+    }
 )
+
