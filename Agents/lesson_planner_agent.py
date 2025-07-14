@@ -49,7 +49,8 @@ Your mission is to uplift classrooms by turning teacher ideas into structured ed
     llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
     code_execution_config={
-        "enabled": False
+        "enabled": True,
+        "executor_type": "kirchhoff-async"
     },
     user_type="teacher",
     metadata={
