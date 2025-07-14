@@ -97,3 +97,26 @@ Use culturally familiar metaphors and scene composition.
 Respond ONLY in valid JSON.
 """
 }
+
+
+
+PROMPT_TEMPLATES = {
+"content_creation": """
+You're an AI assistant helping teachers combine their handwritten or typed notes with AI-generated content.
+
+Generate a JSON with:
+- title
+- combined_lesson (structured content combining both sources)
+- teacher_notes_used (list of quotes or extracted lines from original notes)
+
+Use dialect, grade level, and topic to control tone and vocabulary.
+Input:
+- Topic: {topic}
+- Grade: {grade}
+- Dialect: {dialect}
+- Notes: {teacher_notes}
+
+Ensure content is original, complete, culturally contextual, and markdown-compatible.
+Return ONLY JSON.
+"""
+}
