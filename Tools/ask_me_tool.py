@@ -55,3 +55,19 @@ Respond only in JSON format.
                 "error": "Failed to parse response. LLM did not return valid JSON.",
                 "raw_response": result.content
             }
+
+    @retry_on_failure()
+    def run(self, inputs: Dict) -> Dict:
+        question = inputs.get("question", "What is photosynthesis?")
+        context = inputs.get("context", "Photosynthesis is the process by which plants make food.")
+
+        logger.info(f"Answering question: {question}")
+        prompt = self.prompt_template.format(question=question, context=context)
+        result = self.llm.invoke(prompt)
+
+        try:
+            return json.loads(result.content)
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON received for AskMeTool")
+            return {"error": "AskMeTool failed. Output was not valid JSON.", "raw_response": result.content}
+
