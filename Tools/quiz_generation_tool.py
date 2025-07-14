@@ -1,55 +1,49 @@
-from typing import Dict
-from langchain_core.prompts import PromptTemplate
+from typing import Dict, Any
 from langchain_google_genai import ChatGoogleGenerativeAI
-import os
+from langchain_core.prompts import PromptTemplate
 import json
+
+from tools.utils.prompt_loader import get_prompt_template
+from tools.utils.retry_handler import retry_with_backoff
+from tools.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class QuizGenerationTool:
     def __init__(self):
         self.llm = ChatGoogleGenerativeAI(
             model="gemini-pro",
-            temperature=0.5,
-            google_api_key=os.getenv("GEMINI_API_KEY")
+            temperature=0.6,
+            convert_system_message_to_human=True
+        )
+        self.prompt_template = PromptTemplate.from_template(
+            get_prompt_template("quiz_generation")
         )
 
-        self.prompt_template = PromptTemplate.from_template("""
-You are a quiz creation assistant for Indian school teachers.
-Based on the lesson content and story context, generate a quiz in JSON format.
-
-Output keys:
-- topic
-- grade_level
-- dialect
-- questions (5)
-- options (list per question)
-- correct_answers
-- explanation (optional)
-- mode: "MCQ", "FillBlanks", or "TrueFalse"
-- retry_logic: true/false
-
-Topic: {topic}
-Level: {level}
-Dialect: {dialect}
-StoryContext: {story_context}
-
-Ensure cultural and dialect localization, and ensure no repetition.
-""")
-
-    def run(self, inputs: Dict) -> Dict:
+    @retry_with_backoff(retries=3, delay=2)
+    def run(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         topic = inputs.get("topic", "Photosynthesis")
         level = inputs.get("level", "Medium")
-        dialect = inputs.get("dialect", "Telangana Telugu")
-        story_context = inputs.get("story_context", "")
+        grade = inputs.get("grade", "6")
 
-        prompt = self.prompt_template.format(
-            topic=topic,
-            level=level,
-            dialect=dialect,
-            story_context=story_context
-        )
+        prompt = self.prompt_template.format(topic=topic, level=level, grade=grade)
 
-        result = self.llm.invoke(prompt)
         try:
-            return json.loads(result.content)
+            result = self.llm.invoke(prompt)
+            parsed = json.loads(result.content.strip())
+            logger.info(f"✅ Quiz generated for topic: {topic}")
+            return parsed
+
         except json.JSONDecodeError:
-            return {"error": "Quiz generation failed", "raw_output": result.content}
+            logger.error("❌ Quiz generation JSON decoding failed")
+            return {
+                "error": "Invalid JSON in quiz output",
+                "raw_response": result.content
+            }
+        except Exception as e:
+            logger.exception("🚨 Quiz generation failed")
+            return {
+                "error": "Unexpected error",
+                "details": str(e)
+            }
+
