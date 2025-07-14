@@ -55,9 +55,40 @@ Your mission is to uplift classrooms by turning teacher ideas into structured ed
     metadata={
         "grade_range": "1-10 and UG",
         "access": "teacher_only",
-        "delegates_to": ["QuizAgent", "StoryTellerAgent", "VisualAgent", "MultimodalResearchAgent"],
+        "delegates_to": [
+            "QuizAgent", 
+            "StoryTellerAgent", 
+            "VisualAgent", 
+            "MultimodalResearchAgent"
+        ],
+        "accepts_context_from": [
+            "MultimodalResearchAgent",
+            "UploadedPDFs",
+            "StudentLevelAgent",
+            "CoursePlannerAgent"
+        ],
+        "outputs": [
+            "lesson_plan_json",
+            "core_concepts_list",
+            "lesson_summary",
+            "suggested_agents",
+            "recommended_visuals",
+            "linked_story_prompts",
+            "quiz_questions",
+            "regional_language_support",
+            "offline_exportable_content"
+        ]
     }
 )
+
+# Explicitly declare accepted input sources
+lesson_planner_agent.add_input("topic")
+lesson_planner_agent.add_input("level")
+lesson_planner_agent.add_input("dialect")
+lesson_planner_agent.add_input("context_from_doc")
+lesson_planner_agent.add_input("MultimodalResearchAgent")
+
+# Declare expected outputs
 lesson_planner_agent.add_output("lesson_plan_json")
 lesson_planner_agent.add_output("core_concepts_list")
 lesson_planner_agent.add_output("lesson_summary")
