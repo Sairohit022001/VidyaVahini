@@ -120,3 +120,14 @@ Ensure content is original, complete, culturally contextual, and markdown-compat
 Return ONLY JSON.
 """
 }
+
+
+
+def load_prompt(name: str) -> str:
+    path = f"tools/prompts/{name}"
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+        question = inputs.get("question", "What is transpiration?")
+        context = inputs.get("context", "Plants lose water through small pores called stomata.")
+        prompt = self.prompt_template.format(question=question, context=context)
+        result = self.llm.invoke(prompt)

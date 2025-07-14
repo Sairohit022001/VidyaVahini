@@ -1,32 +1,32 @@
 from typing import Dict
+import json
+from tools.utils.retry_handler import retry_on_failure
+from tools.utils.logger import setup_logger
+from tools.utils.prompt_loader import load_prompt
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import PromptTemplate
+
+logger = setup_logger("GamificationTool")
 
 class GamificationTool:
     def __init__(self):
-        # If needed, initialize scoring configs here
-        self.base_xp = {
-            "quiz": 10,
-            "lesson": 5,
-            "story": 8,
-            "exploration": 4
-        }
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-pro",
+            temperature=0.6,
+            convert_system_message_to_human=True
+        )
+        self.prompt_template = PromptTemplate.from_template(load_prompt("gamification.txt"))
 
+    @retry_on_failure()
     def run(self, inputs: Dict) -> Dict:
-        """
-        Simulate assigning XP, badges, and leaderboard calculation.
-        In production, this could integrate with Firestore or Node backend.
-        """
-        activity_logs = inputs.get("activity_logs", [])
-        
-        leaderboard = ["Student A", "Student B", "Student C"]
-        badge_earned = ["Quiz Master", "Content Explorer"]
-        xp_distribution = {
-            "Student A": 120,
-            "Student B": 100,
-            "Student C": 90
-        }
+        student_data = inputs.get("student_data", {})
+        logger.info("Generating gamification metrics")
 
-        return {
-            "xp_distribution": xp_distribution,
-            "badge_earned": badge_earned,
-            "leaderboard": leaderboard
-        }
+        prompt = self.prompt_template.format(student_data=str(student_data))
+        result = self.llm.invoke(prompt)
+
+        try:
+            return json.loads(result.content)
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON from LLM for gamification")
+            return {"error": "Gamification generation failed.", "raw_response": result.content}
