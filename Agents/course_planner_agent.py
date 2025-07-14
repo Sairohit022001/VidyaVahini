@@ -1,4 +1,17 @@
 from crewai import Agent
+from crewai.memory import MemoryHandler 
+from crewai.tools.course_planner_tool import course_planner_tool
+from crewai.tasks.course_planner_tasks import generate_course_plan_task
+
+# Initialize memory handler for the agent
+memory_handler = MemoryHandler(
+    session_id="course_planner_session",                    
+    file_path="memory/course_planner_memory.json"
+)   
+
+# Tool for course planner agent
+course_tool = course_planner_tool()
+
 
 course_planner_agent = Agent(
     name="CoursePlannerAgent",
@@ -19,10 +32,26 @@ It respects grade-level learning objectives and links to prior topics.
 It can also optionally recommend related research papers or stories.
 It outputs a clear JSON for integration into dashboards or printed sheets.
 """,
-    verbose=True
-    allow_delegation=True,
     memory=True,
-    context_strategy="reflexion",
+    memory_handler=memory_handler,
+    allow_delegation=True,
+    verbose=True,
+    tools=[course_tool],
+    tasks=[generate_course_plan_task],
+    user_type="teacher",
+    metadata={
+        "grade_range": "1-10 and UG",
+        "subject_areas": "All subjects",
+        "language_support": "Regional dialects supported"
+    },
+    session_memory_handler=memory_handler,
+    session_tools=[course_tool],
+    session_tasks=[generate_course_plan_task],
+    llm_config={"model": "gemini-pro", "temperature": 0.6},
+    respect_context_window=True,
+    code_execution_config={
+        "enabled": False
+    },
 )
 course_planner_agent.add_input("QuizAgent")
 course_planner_agent.add_input("StudentLevelAgent")

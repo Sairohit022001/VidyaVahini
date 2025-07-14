@@ -1,4 +1,18 @@
 from crewai import Agent
+from crewai.tools import QuizGenerationTool
+from crewai.memory import MemoryHandler
+from crewai.tasks import generate_quiz_task
+
+
+# Initialize memory handler for the agent
+memory_handler = MemoryHandler(
+    session_id="quiz_agent_session",
+    file_path="memory/quiz_agent_memory.json"
+)
+
+
+# Initialize the quiz generation tool
+quiz_tool = QuizGenerationTool()
 
 quiz_agent = Agent(
     name="QuizAgent",
@@ -24,8 +38,16 @@ This agent collaborates with LessonPlannerAgent, StoryTellerAgent, and Bhāṣā
 and tracks progress for teacher dashboards.
 """,
     memory=True,
-    allow_delegation=False,
-    verbose=True
+    memory_handler=memory_handler,
+    allow_delegation=True,
+    verbose=True,
+    tools=[QuizGenerationTool()],
+    tasks=[generate_quiz_task],
+    llm_config={"model": "gemini-pro", "temperature": 0.6},
+    respect_context_window=True,
+    code_execution_config={"enabled": False},
+    user_type="teacher",
+    metadata={"grade_range": "1-10 and UG", "access": "teacher_only", "delegates_to": ["CoursePlannerAgent"]}
 )
 quiz_agent.add_input("LessonPlannerAgent")
 quiz_agent.add_input("StoryTellerAgent")  # Optional: for story-based quizzes

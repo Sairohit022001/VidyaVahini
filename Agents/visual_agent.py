@@ -1,6 +1,18 @@
-# agents/visual_agent.py
-
 from crewai import Agent
+from tools.visual_generation_tool import VisualGenerationTool
+from tasks.visual_agent_tasks import generate_visuals_task
+from memory.memory_handler import MemoryHandler 
+
+# Initialize the visual generation tool
+visual_generation_tool = VisualGenerationTool() 
+
+# Set up memory handler for the visual agent
+memory_handler = MemoryHandler(
+    session_id="visual_agent_session",      
+    file_path="memory/visual_agent_memory.json"
+)   
+
+# Define the VisualAgent with its properties and capabilities
 
 visual_agent = Agent(
     name="VisualAgent",
@@ -17,7 +29,6 @@ visual_agent = Agent(
     "9. Seamlessly integrate with StoryTellerAgent and LessonPlannerAgent.\n"
     "10. Output AI-generated images or prompts ready for PDF export or display."
 )
-
     backstory=(
     "1. VisualAgent was built to enhance concept delivery through vivid imagery.\n"
     "2. It serves Indian classrooms where abstract concepts often need visual aids.\n"
@@ -43,11 +54,25 @@ visual_agent = Agent(
         "cultural context, and student needs. The agent will only use these tools when it
         "deems it necessary to fulfill its role in generating educational visuals."
     ),
-    max_iterations=5,
+    memory=True,
+    memory_handler=MemoryHandler(
+        session_id="visual_agent_session",
+        file_path="memory/visual_agent_memory.json"
+    ),
     allow_delegation=True,
-    verbose=True,
-    memory=True
+    verbose=True,       
+    llm_config={"model": "gemini-pro", "temperature": 0.7, "max_tokens": 2048},
+    respect_context_window=True,
+    code_execution_config={"enabled": False},       
+    user_type="teacher",        
+    metadata={
+        "grade_range": "1-10 and UG",
+        "access": "teacher_only",
+        "delegates_to": ["StoryTellerAgent", "LessonPlannerAgent"]
+    }       
 )
+
+
 visual_agent.add_input("LessonPlannerAgent")
 visual_agent.add_input("StoryTellerAgent")
 visual_agent.add_output("dalle_prompts")

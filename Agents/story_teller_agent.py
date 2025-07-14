@@ -1,5 +1,16 @@
 from crewai import Agent
-from tasks.story_teller_tasks import generate_story_task
+from tools.story_generation_tool import StoryGenerationTool
+from storyteller_tasks import generate_story_task
+from memory.memory_handler import MemoryHandler
+
+story_tool = StoryGenerationTool()
+
+memory_handler = MemoryHandler(
+    session_id="story_teller_agent_session",
+    file_path="memory/story_teller_agent_memory.json"
+)   
+
+
 
 story_teller_agent = Agent(
     id="story-teller-agent",
@@ -13,7 +24,7 @@ story_teller_agent = Agent(
 5. Output structured JSON compatible with UI story cards.
 6. Recommend visual prompts for VisualAgent or DALL·E.
 7. Collaborate seamlessly with BhāṣāGuru for audio narration.
-8. Dynamically adjust tone and vocabulary based on grade (Class 1–10 or UG).
+8. Dynamically adjust tone and vocabulary based on grade (Class 1-10 or UG).
 9. Generate multilingual-ready stories with flexible prompt formatting.
 10. Empower teachers to make lessons interactive through storytelling.
 """,
@@ -29,12 +40,21 @@ story_teller_agent = Agent(
 9. Ensures every story embeds a purpose: moral learning, curiosity, or conceptual clarity.
 10. Its ultimate goal is to empower teachers with engaging narrative tools, not replace them.
 """,
+    tools=[story_tool],
     tasks=[generate_story_task],
-    memory=True,                        
-    allow_delegation=True,             
+    memory=True,
+    memory_handler=memory_handler,
+    allow_delegation=True,
     verbose=True,
+    llm_config={"model": "gemini-pro", "temperature": 0.7, "max_tokens": 2048},
     respect_context_window=True,
-    knowledge_sources=[],           
+    code_execution_config={"enabled": False},
+    user_type="teacher",
+    metadata={
+        "grade_range": "1-10 and UG",
+        "access": "teacher_only",
+        "delegates_to": ["VisualAgent"]
+    }
 )
 story_teller_agent.add_input("LessonPlannerAgent")
 story_teller_agent.add_output("story_title")

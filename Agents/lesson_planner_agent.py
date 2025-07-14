@@ -13,8 +13,8 @@ memory_handler = LocalMemoryHandler(
 lesson_tool = LessonGenerationTool()
 
 #Define Agent
-LessonPlannerAgent = Agent(
-    name="LessonPlannerAgent",
+lesson_planner_agent = Agent(
+    name="lesson_planner_agent",
     role="AI co-teacher that helps educators design structured lessons, quizzes, stories, and visual content.",
     goal="""
 Support teachers in generating clear, curriculum-aligned lesson content.
@@ -46,11 +46,7 @@ Your mission is to uplift classrooms by turning teacher ideas into structured ed
     verbose=True,
     tools=[lesson_tool],
     tasks=[generate_lesson_task],
-    llm_config={
-        "model": "gpt-4",
-        "temperature": 0.7,
-        "max_tokens": 2048
-    },
+    llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
     code_execution_config={
         "enabled": False
