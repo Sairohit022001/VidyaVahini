@@ -48,7 +48,7 @@ story_teller_agent = Agent(
     verbose=True,
     llm_config={"model": "gemini-pro", "temperature": 0.7, "max_tokens": 2048},
     respect_context_window=True,
-    code_execution_config={"enabled": False},
+    code_execution_config={"enabled": True,"executor_type": "kirchhoff-async"},
     user_type="teacher",
     metadata={
         "grade_range": "1-10 and UG",

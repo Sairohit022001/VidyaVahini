@@ -45,7 +45,7 @@ and tracks progress for teacher dashboards.
     tasks=[generate_quiz_task],
     llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
-    code_execution_config={"enabled": False},
+    code_execution_config={"enabled": True,"executor_type": "kirchhoff-async"},
     user_type="teacher",
     metadata={"grade_range": "1-10 and UG", "access": "teacher_only", "delegates_to": ["CoursePlannerAgent"]}
 )

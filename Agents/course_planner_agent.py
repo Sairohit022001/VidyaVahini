@@ -49,8 +49,8 @@ It outputs a clear JSON for integration into dashboards or printed sheets.
     session_tasks=[generate_course_plan_task],
     llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
-    code_execution_config={
-        "enabled": False
+    code_execution_config={"enabled": True,
+    "executor_type": "kirchhoff-async"
     },
 )
 course_planner_agent.add_input("QuizAgent")
