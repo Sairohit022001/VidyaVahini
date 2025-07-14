@@ -55,7 +55,8 @@ content_creator_agent = Agent(
     llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
     code_execution_config={
-        "enabled": False
+        "enabled": True,
+        "executor_type": "kirchhoff-async"
     },
 )
 
