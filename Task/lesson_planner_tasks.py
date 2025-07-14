@@ -48,7 +48,7 @@ generate_lesson_task = Task(
     metadata={
         "agent": "LessonPlannerAgent",
         "access": "teacher_only",
-        "downstream": ["QuizAgent", "StoryTellerAgent", "VisualAgent"],
+        "downstream": ["QuizAgent", "StoryTellerAgent", "VisualAgent","MultimodalResearchAgent"],
         "triggers": ["on_topic_selection"]
     }
 )
