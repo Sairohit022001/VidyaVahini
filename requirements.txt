@@ -1,37 +1,6 @@
-# Core LLM + Transformers
-transformers==4.41.2
-huggingface_hub==0.23.3
-sentence-transformers==2.7.0
-datasets==2.19.1
-torch==2.3.0
-
-# Agent Frameworks
-crewai==0.28.1     # ✅ installable via PyPI
-langchain==0.2.0
-openai==1.30.3
-
-# Voice Synthesis (TTS)
-gTTS==2.5.1
-phonemizer==3.2.1
-pyttsx3==2.90
-pydub==0.25.1
-
-# Translation + Indian Languages
-sarvam==0.2.4
-indic-transliteration==2.3.43
-indic-nlp-library==0.81
-nltk==3.8.1
-spacy==3.7.4
-
-# Utilities
-python-dotenv==1.0.1
-pandas==2.2.2
-numpy==1.26.4
-requests==2.32.3
-tqdm==4.66.4
-
-# Optional: Flask for minimal backend
-flask==3.0.3
-
-
-langchain-google-genai==0.0.9 google-generativeai==0.5.2
+crewai==0.141.0
+python-dotenv
+google-cloud-texttospeech
+pydantic
+langchain-google-genai==0.0.9 
+google-generativeai
