@@ -1,117 +1,97 @@
-# tools/voice_tutor_tool.py
-
-"""
-Voice Tutor Tool
-
-This module handles:
-- Dialect-based clustering for Telugu regions
-- SSML generation with prosody tuning
-- Google Cloud Text-to-Speech API integration
-- Audio synthesis and base64 output for UI compatibility
-
-Usage:
-    voice_tool = VoiceTutorTool()
-    audio_data = voice_tool.run(text="Photosynthesis is...", dialect="Telangana Telugu", student_level="beginner")
-"""
-
 import os
-import base64
-from typing import Literal, Dict
+import json
 from google.cloud import texttospeech
-from dotenv import load_dotenv
 
-load_dotenv()
+# Set the env var if not already set
+GOOGLE_CLOUD_TTS_CREDENTIALS = os.getenv(
+    "GOOGLE_APPLICATION_CREDENTIALS",
+    "/workspaces/VidyaVahini/VidyaVahini/keys/vidyavahini-tts-3f4de486bdd1.json"
+)
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_CLOUD_TTS_CREDENTIALS
+
+# Dialect clustering map example
+DIALECT_MAP = {
+    "telangana": {
+        "language_code": "te-IN",
+        "voice_name": "te-IN-Standard-A",  # MALE
+        "ssml_gender": texttospeech.SsmlVoiceGender.MALE,
+        "prosody_rate": "medium",
+        "prosody_pitch": "+0st",
+    },
+    "andhra": {
+        "language_code": "te-IN",
+        "voice_name": "te-IN-Standard-B",  # FEMALE
+        "ssml_gender": texttospeech.SsmlVoiceGender.FEMALE,
+        "prosody_rate": "medium",
+        "prosody_pitch": "+1st",
+    },
+    "default": {
+        "language_code": "en-IN",
+        "voice_name": "en-IN-Wavenet-D",  # ✅ This still works
+        "ssml_gender": texttospeech.SsmlVoiceGender.NEUTRAL,
+        "prosody_rate": "medium",
+        "prosody_pitch": "+0st",
+    },
+}
+
 
 class VoiceTutorTool:
     def __init__(self):
+        # No need to reset env var here again, it's already set above
         self.client = texttospeech.TextToSpeechClient()
-        self.voice_mapping = {
-            "Telangana": "te-IN-Wavenet-A",
-            "Andhra": "te-IN-Wavenet-B",
-            "Rayalaseema": "te-IN-Wavenet-C"
-        }
-        self.default_voice = "te-IN-Wavenet-A"
-        self.audio_config = texttospeech.AudioConfig(
-            audio_encoding=texttospeech.AudioEncoding.MP3
-        )
 
-    def _detect_dialect_cluster(self, dialect: str) -> str:
-        """Map user dialect to one of the known clusters."""
-        if "telangana" in dialect.lower():
-            return "Telangana"
-        elif "andhra" in dialect.lower():
-            return "Andhra"
-        elif "rayalaseema" in dialect.lower():
-            return "Rayalaseema"
-        else:
-            return "Telangana"  # Fallback default
+    def _get_dialect_settings(self, dialect_name: str):
+        key = dialect_name.lower()
+        return DIALECT_MAP.get(key, DIALECT_MAP["default"])
 
-    def _generate_ssml(self, text: str, level: Literal["beginner", "intermediate", "advanced"]) -> str:
-        """Return SSML markup with prosody settings."""
-        prosody_settings = {
-            "beginner": {"rate": "slow", "pitch": "+2st"},
-            "intermediate": {"rate": "medium", "pitch": "+1st"},
-            "advanced": {"rate": "fast", "pitch": "0st"}
-        }
-        settings = prosody_settings.get(level, prosody_settings["beginner"])
-        ssml = f"""
+    def _build_ssml(self, text: str, rate: str, pitch: str):
+        ssml_text = f"""
         <speak>
-          <prosody rate="{settings['rate']}" pitch="{settings['pitch']}">
+          <prosody rate="{rate}" pitch="{pitch}">
             {text}
           </prosody>
         </speak>
         """
-        return ssml.strip()
+        return ssml_text
 
-    def _synthesize_speech(self, ssml: str, voice_name: str) -> bytes:
-        """Call GCP API and return synthesized audio bytes."""
+    def synthesize_speech(self, text: str, dialect: str = "default", output_path: str = "output.mp3") -> str:
+        dialect_settings = self._get_dialect_settings(dialect)
+
+        ssml = self._build_ssml(text, dialect_settings["prosody_rate"], dialect_settings["prosody_pitch"])
+
         input_text = texttospeech.SynthesisInput(ssml=ssml)
-        voice_params = texttospeech.VoiceSelectionParams(
-            language_code="te-IN",
-            name=voice_name
+
+        voice = texttospeech.VoiceSelectionParams(
+            language_code=dialect_settings["language_code"],
+            name=dialect_settings["voice_name"],
+            ssml_gender=dialect_settings["ssml_gender"],
         )
+
+        audio_config = texttospeech.AudioConfig(
+            audio_encoding=texttospeech.AudioEncoding.MP3,
+        )
+
         response = self.client.synthesize_speech(
             input=input_text,
-            voice=voice_params,
-            audio_config=self.audio_config
+            voice=voice,
+            audio_config=audio_config,
         )
-        return response.audio_content
 
-    def run(self, text: str, dialect: str, student_level: str = "beginner") -> Dict:
-        """
-        Main entry point to generate voice output.
+        with open(output_path, "wb") as out:
+            out.write(response.audio_content)
 
-        Parameters:
-        - text (str): The explanation or story content
-        - dialect (str): User's regional dialect ("Telangana Telugu")
-        - student_level (str): Reading level - beginner, intermediate, advanced
+        return output_path
 
-        Returns:
-        - dict: {
-            "audio_base64": <base64 string>,
-            "ssml_used": <ssml string>,
-            "voice_model": <voice name>
+    def generate_voice_tutor(self, text: str, dialect: str = "default") -> dict:
+        dialect_settings = self._get_dialect_settings(dialect)
+        ssml_text = self._build_ssml(text, dialect_settings["prosody_rate"], dialect_settings["prosody_pitch"])
+        output_file = f"voice_tutor_output_{dialect}.mp3"
+
+        audio_path = self.synthesize_speech(text, dialect, output_file)
+
+        return {
+            "ssml": ssml_text.strip(),
+            "audio_file": audio_path,
+            "dialect": dialect,
         }
-        """
-        try:
-            cluster = self._detect_dialect_cluster(dialect)
-            voice_name = self.voice_mapping.get(cluster, self.default_voice)
-            ssml = self._generate_ssml(text, student_level)
-            audio_bytes = self._synthesize_speech(ssml, voice_name)
-            audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
-
-            return {
-                "audio_base64": audio_base64,
-                "ssml_used": ssml,
-                "voice_model": voice_name
-            }
-        except Exception as e:
-            return {
-                "error": str(e),
-                "audio_base64": None,
-                "ssml_used": "",
-                "voice_model": "undefined"
-            }
-
-# ✅ Singleton instance
-voice_tutor_tool = VoiceTutorTool()

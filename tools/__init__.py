@@ -1,1 +1,2 @@
-from .voice_tutor_tool import voice_tutor_tool
+from .voice_tutor_tool import VoiceTutorTool
+
