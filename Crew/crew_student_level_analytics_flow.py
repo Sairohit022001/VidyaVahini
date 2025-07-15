@@ -18,59 +18,78 @@ Usage:
 
 from crewai import Crew
 from agents.student_level_analytics_agent import student_level_analytics_agent
-from tasks.student_level_analytics_task import student_level_analytics_task
-
-from pydantic import BaseModel, ValidationError
+from tasks.student_level_analytics_task import generate_student_analytics_task
+from pydantic import BaseModel, ValidationError, Field
+from typing import Dict, List
 import logging
 
+# Setup logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s — %(levelname)s — %(message)s")
 logger = logging.getLogger(__name__)
 
-# Crew setup
+# Setup crew
 student_level_analytics_crew = Crew(
     agents=[student_level_analytics_agent],
-    tasks=[student_level_analytics_task],
+    tasks=[generate_student_analytics_task],
     verbose=True,
     process="sequential",
     memory=True
 )
 
-student_level_analytics_agent.add_input("student_performance_data")
-student_level_analytics_agent.add_output("learning_gaps")
-student_level_analytics_agent.add_output("personalized_recommendations")
-student_level_analytics_agent.add_output("progress_reports")
+# Input/Output mapping (align with task.py + agent.py)
+student_level_analytics_agent.add_input("student_performance")
+student_level_analytics_agent.add_output("strengths")
+student_level_analytics_agent.add_output("weaknesses")
+student_level_analytics_agent.add_output("recommendations")
+student_level_analytics_agent.add_output("progress_score")
 
-# Input validation schema
+# Define input schema
 class StudentPerformanceInput(BaseModel):
-    student_performance_data: dict  # Define detailed schema if possible
+    name: str
+    scores: Dict[str, float]
+    concept_scores: Dict[str, float]
 
-def run_student_level_analytics_crew(student_performance_data: dict):
+def run_student_level_analytics_crew(student_performance: dict):
     """
-    Runs Student Level Analytics Crew for personalized student insights.
+    Runs the Student Level Analytics Crew to analyze a single student's performance.
 
     Parameters:
-        student_performance_data (dict): Performance data per student.
+        student_performance (dict): Must include:
+            - name (str)
+            - scores (dict of quiz_name: score)
+            - concept_scores (dict of concept_name: score)
 
     Returns:
-        dict: Learning gaps, recommendations, progress reports, or errors.
+        dict: Strengths, weaknesses, progress score, and tailored recommendations.
     """
     try:
-        inputs = StudentPerformanceInput(student_performance_data=student_performance_data)
-        logger.info("Validated student performance input")
-        result = student_level_analytics_crew.run(inputs=inputs.dict())
-        logger.info("Student Level Analytics Agent completed successfully")
+        inputs = StudentPerformanceInput(**student_performance)
+        logger.info("✅ Input validation successful.")
+        result = student_level_analytics_crew.run(inputs={"student_performance": inputs.dict()})
+        logger.info("🎯 Student Analytics completed successfully.")
         return result
     except ValidationError as ve:
-        logger.error(f"Validation error: {ve}")
+        logger.error(f"❌ Input validation failed: {ve}")
         return {"error": "Invalid input", "details": ve.errors()}
     except Exception as e:
-        logger.error(f"Execution error: {e}")
+        logger.error(f"❌ Execution failed: {e}")
         return {"error": "Execution failed", "details": str(e)}
 
+# Dev testing
 if __name__ == "__main__":
-    sample_student_data = {
-        "student_1": {"quiz_1": 75, "quiz_2": 65},
-        "student_2": {"quiz_1": 90, "quiz_2": 95}
+    sample_input = {
+        "name": "Sita",
+        "scores": {
+            "quiz_1": 85,
+            "quiz_2": 70
+        },
+        "concept_scores": {
+            "Photosynthesis": 82,
+            "Food Chain": 48,
+            "Water Cycle": 90
+        }
     }
-    output = run_student_level_analytics_crew(sample_student_data)
+
+    output = run_student_level_analytics_crew(sample_input)
+    print("\n[📚 STUDENT ANALYTICS RESULT]")
     print(output)
