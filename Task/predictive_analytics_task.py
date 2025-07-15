@@ -1,26 +1,22 @@
 from crewai import Task
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any
+from typing import List
 
 class ClassAnalyticsOutputSchema(BaseModel):
-    average_score: float = Field(..., description="Average score of the class for the quiz")
-    top_performers: List[str] = Field(..., description="List of top-performing students")
-    weak_areas: List[str] = Field(..., description="Concepts or topics where students performed poorly")
-    recommendations: Dict[str, Any] = Field(
+    average_score: float = Field(..., description="Average score of the class across the quiz")
+    top_performers: List[str] = Field(..., description="List of top-performing student IDs or names")
+    weak_areas: List[str] = Field(..., description="List of commonly misunderstood topics or concepts")
+    lesson_plan_suggestions: List[str] = Field(
         ...,
-        description=(
-            "Personalized recommendations per student and general suggestions for lesson planning, "
-            "including chapters to focus on and concepts to re-explain"
-        )
+        description="Chapters or concepts to re-emphasize in future lessons"
     )
 
 generate_class_analytics_task = Task(
     name="GenerateClassAnalytics",
     description=(
-        "Analyze quiz results to produce detailed class-level and individual student analytics for each quiz. "
-        "Outputs include average scores, identification of top performers and weak areas, personalized recommendations "
-        "to guide lesson planning, and suggestions for chapters or concepts requiring re-explanation. "
-        "Also compares performance trends across multiple quizzes."
+        "Analyze overall class quiz results to extract aggregate performance indicators such as average score, "
+        "top performers, and weak areas. Generate actionable lesson planning suggestions for teachers. "
+        "Focus only on class-level trends without diving into individual student analytics."
     ),
     inputs=["quiz_results"],
     expected_output=ClassAnalyticsOutputSchema,
@@ -34,11 +30,11 @@ generate_class_analytics_task = Task(
             "average_score": 0.0,
             "top_performers": [],
             "weak_areas": [],
-            "recommendations": {}
+            "lesson_plan_suggestions": []
         }
     },
     metadata={
-        "agent": "AnalyticsAgent",
+        "agent": "PredictiveAnalyticsAgent",
         "access": "teacher_only",
         "downstream": ["LessonPlannerAgent", "TeacherDashboardAgent"],
         "triggers": ["on_quiz_completion", "periodic_review"]

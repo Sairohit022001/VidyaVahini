@@ -12,20 +12,15 @@ predictive_analytics_agent = Agent(
     name="PredictiveAnalyticsAgent",
     role="Class-level analytics generator for quiz results",
     goal=(
-        "Analyze quiz results from QuizAgent and provide class-level analytics, "
-        "including average score, top performers, areas of weakness for each student, and recommendations."
-        "create actionable insights for teachers to improve student learning outcomes."
-        "Assist in planning future lessons based on class performance trends."
-        "Generate structured reports that can be integrated into teacher dashboards."
-        "Support offline-first delivery where analytics are cached and sync back with Firestore via SyncAgent."
-        "Help teachers monitor class engagement, scores, misconceptions, and student-specific patterns."
-        
+        "Analyze aggregated quiz results from QuizAgent to provide class-level insights such as average score, "
+        "top-performing students, class-wide weak concepts, and learning trends. "
+        "Support teachers in planning future lessons based on whole-class performance patterns. "
+        "Generate structured JSON reports for integration with teacher dashboards and decision making."
     ),
     backstory=(
-        "This agent helps teachers understand class performance on quizzes, "
-        "identifies trends, and suggests interventions for improvement"
-        "It generates structured reports that can be used in teacher dashboards or printed sheets."
-        "It is designed to work seamlessly with QuizAgent and TeacherDashboardAgent, "
+        "This agent supports teachers by analyzing class-wide quiz data to identify group-level performance patterns. "
+        "It surfaces trends, recommends topics for revision, and assists in class-level planning. "
+        "Designed to integrate with TeacherDashboardAgent and support offline caching with SyncAgent."
     ),
     memory=True,
     memory_handler=memory_handler,
@@ -35,12 +30,12 @@ predictive_analytics_agent = Agent(
     tasks=[generate_class_analytics_task],
     user_type="teacher",
     metadata={
-        "analysis_type": "quiz",
+        "analysis_type": "class_level",
         "output_format": "JSON"
     },
     llm_config={"model": "gemini-pro", "temperature": 0.5},
     respect_context_window=True,
-    code_execution_config={"enabled": True,
-    "executor_type": "kirchhoff-async"},
+    code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
 )
+
 predictive_analytics_agent.add_input("QuizAgent")
