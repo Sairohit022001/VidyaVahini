@@ -1,4 +1,4 @@
-#from crewflows import Agent
+from crewflows import Agent
 from crewflows.memory import MemoryHandler 
 from crewflows.tools.course_planner_tool import course_planner_tool
 from crewflows.tasks.course_planner_tasks import generate_course_plan_task

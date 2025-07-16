@@ -26,7 +26,7 @@ Outputs:
 - DropoutAlertList (list): List of students at risk of dropping out
 - FlaggedStudentsList (list): List of students flagged for teacher attention
 """
-from crewai import Crew
+from crewflows import Crew
 from agents.dashboard_agent import dashboard_agent
 from tasks.dashboard_task import dashboard_task
 

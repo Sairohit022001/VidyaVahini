@@ -16,7 +16,7 @@ Usage:
     to obtain integrated research insights and structured outputs.
 """
 
-from crewai import Crew
+from crewflows import Crew
 from agents.multimodal_research_agent import multimodal_research_agent
 from tasks.multimodal_research_task import multimodal_research_task
 

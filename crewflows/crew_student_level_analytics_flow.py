@@ -16,7 +16,7 @@ Usage:
     to get personalized analytics.
 """
 
-from crewai import Crew
+from crewflows import Crew
 from agents.student_level_analytics_agent import student_level_analytics_agent
 from tasks.student_level_analytics_task import generate_student_analytics_task
 from pydantic import BaseModel, ValidationError, Field

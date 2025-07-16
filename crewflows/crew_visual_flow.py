@@ -25,7 +25,7 @@ Output:
 - Visual content metadata or links
 """
 
-from crewai import Crew
+from crewflows import Crew
 from agents.visual_agent import visual_agent
 from tasks.visual_generation_task import generate_visual_task
 from tools.visual_generation_tool import VisualGenerationTool

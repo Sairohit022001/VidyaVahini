@@ -1,4 +1,4 @@
-from crewai import Crew
+from crewflows import Crew
 from agents.lesson_planner_agent import lesson_planner_agent
 from tasks.lesson_planner_tasks import lesson_generation_task
 from tools.lesson_planner_tool import LessonPlannerTool

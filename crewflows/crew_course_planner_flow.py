@@ -19,7 +19,7 @@ Outputs:
 - Updated course plan recommendations tailored to student progress
 """
 
-from crewai import Crew
+from crewflows import Crew
 from agents.course_planner_agent import course_planner_agent
 from tasks.course_planner_tasks import generate_course_plan_task
 from tools.course_planner_tool import CoursePlannerTool

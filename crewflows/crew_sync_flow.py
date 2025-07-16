@@ -24,7 +24,7 @@ Outputs:
 - FirestoreToIndexedDBSyncStatus: Success/failure of downward sync
 - LastSyncTimestamp: UTC timestamp of last successful sync
 """
-from crewai import Crew
+from crewflows import Crew
 from agents.sync_agent import sync_agent
 from tasks.sync_task import sync_task
 

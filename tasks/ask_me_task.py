@@ -1,4 +1,4 @@
-from crewai import Task
+from crewflows import Task
 from pydantic import BaseModel, Field
 from typing import Optional, List
 

@@ -17,7 +17,7 @@ Usage:
     class-level analytics report.
 """
 
-from crewai import Crew
+from crewflows import Crew
 from agents.predictive_analytics_agent import predictive_analytics_agent
 from tasks.predictive_analytics_task import generate_class_analytics_task
 from pydantic import BaseModel, Field, ValidationError

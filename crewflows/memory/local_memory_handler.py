@@ -1,6 +1,6 @@
 import os
 import json
-from crewai.memory.base import BaseMemoryHandler 
+from crewflows.memory.base import BaseMemoryHandler 
 
 class LocalMemoryHandler(BaseMemoryHandler):
     def __init__(self, session_id: str, file_path: str):

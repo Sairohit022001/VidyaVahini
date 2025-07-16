@@ -17,7 +17,7 @@ Usage:
 """
 
 
-from crewai import Crew
+from crewflows import Crew
 from agents.content_creator_agent import content_creator_agent
 from tasks.content_creator_task import content_creator_task
 

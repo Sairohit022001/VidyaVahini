@@ -24,7 +24,7 @@ Outputs:
 - BadgesEarned (list): Badges earned based on milestones
 - LeaderboardData (list): Current leaderboard rankings
 """
-from crewai import Crew
+from crewflows import Crew
 from agents.gamification_agent import gamification_agent
 from tasks.gamification_task import gamification_task
 

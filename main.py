@@ -29,9 +29,12 @@ from agents.predictive_analytics_agent import predictive_analytics_agent
 from agents.gamification_agent import gamification_agent
 from agents.content_creator_agent import content_creator_agent
 
-from crewai import Crew
-from crewai.memory.local_memory_handler import LocalMemoryHandler
+from crewflows import Crew
+from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from llms.llm_config import custom_llm_config
+
+from dotenv import load_dotenv
+load_dotenv()
 
 
 logging.basicConfig(

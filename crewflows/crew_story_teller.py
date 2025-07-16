@@ -25,7 +25,7 @@ Output:
 - Structured JSON story content including title, narrative body, characters, and regional adaptation
 """
 
-from crewai import Crew
+from crewflows import Crew
 from agents.story_teller_agent import story_teller_agent
 from tasks.story_teller_tasks import generate_story_task
 

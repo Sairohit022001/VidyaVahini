@@ -21,7 +21,7 @@ Inputs:
 Output:
 - List of multiple-choice questions in structured format
 """
-from crewai import Crew
+from crewflows import Crew
 from agents.quiz_agent import quiz_agent
 from tasks.quiz_tasks import generate_quiz_task
 from tools.quiz_generation_tool import QuizGenerationTool

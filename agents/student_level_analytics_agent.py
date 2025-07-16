@@ -1,5 +1,5 @@
-from crewai import Agent
-from crewai.memory import MemoryHandler
+from crewflows import Agent
+from crewflows.memory import MemoryHandler
 from tasks.student_level_analytics_task import generate_student_analytics_task
 from tools.student_level_analytics_tool import student_level_analytics_tool
 

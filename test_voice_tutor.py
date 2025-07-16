@@ -1,4 +1,4 @@
-from crewai.crew_voice_tutor import run_voice_tutor_crew
+from crewflows.crew_voice_tutor import run_voice_tutor_crew
 import os
 import platform
 import subprocess
