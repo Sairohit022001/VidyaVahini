@@ -6,7 +6,12 @@ from langchain_core.prompts import PromptTemplate
 import json
 import logging
 
-from tools.utils.prompt_loader import get_prompt_template
+import sys
+print(sys.path)
+
+
+from .utils.prompt_loader import get_prompt_template
+
 from tools.utils.retry_handler import retry_with_backoff
 from tools.utils.logger import get_logger
 
