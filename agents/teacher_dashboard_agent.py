@@ -1,12 +1,12 @@
 from crewflows import Agent
-from memory.memory_handler import MemoryHandler 
-from tools.teacher_dashboard_tool import TeacherDashboardTool
-from teacher_dashboard_tasks import teacher_dashboard_task 
+from crewflows.memory.local_memory_handler import LocalMemoryHandler
+from tools.dashboard_tool import TeacherDashboardTool
+from tasks.dashboard_tasks import generate_dashboard_metrics_task 
 
 
 teacher_dashboard_tool = TeacherDashboardTool()
 
-memory_handler = MemoryHandler(
+memory_handler = LocalMemoryHandler(
     session_id="teacher_dashboard_agent_session",
     file_path="memory/teacher_dashboard_agent_memory.json"
 )   
@@ -39,9 +39,9 @@ teacher_dashboard_agent = Agent(
 10. Anchored in making teachers' work smarter and not harder.
 """,
     tools=[teacher_dashboard_tool],
-    tasks=[teacher_dashboard_task],
+    tasks=[generate_dashboard_metrics_task],
     memory=True,
-    memory_handler=MemoryHandler(
+    memory_handler= LocalMemoryHandler(
         session_id="teacher_dashboard_agent_session",
         file_path="memory/teacher_dashboard_agent_memory.json"
     ),

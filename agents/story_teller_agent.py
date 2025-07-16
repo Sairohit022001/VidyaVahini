@@ -1,12 +1,12 @@
 from crewflows import Agent
 from tools.story_generation_tool import StoryGenerationTool
-from storyteller_tasks import generate_story_task
-from memory.memory_handler import MemoryHandler
+from tasks.story_teller_tasks import generate_story_task
+from crewflows.memory.local_memory_handler import LocalMemoryHandler 
 
 
 story_tool = StoryGenerationTool()
 
-memory_handler = MemoryHandler(
+memory_handler = LocalMemoryHandler(
     session_id="story_teller_agent_session",
     file_path="memory/story_teller_agent_memory.json"
 )   

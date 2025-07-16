@@ -1,16 +1,16 @@
 from crewflows import Agent  # temporarily commented out
 
-from crewflows.memory import MemoryHandler
-from crewai.tasks import content_creation_task
-from crewflows.tools.content_creation_tool import content_creation_tool 
+from crewflows.memory.local_memory_handler import LocalMemoryHandler
+from tasks.content_creation_tasks import generate_content_task
+from tools.content_creation_tool import ContentCreationTool
       
 
-memory_handler = MemoryHandler(
+memory_handler = LocalMemoryHandler(
     session_id="content_creator_agent_session",
     file_path="memory/content_creator_agent_memory.json"
 )   
 
-content_creation_tool = content_creation_tool()
+content_creation_tool = ContentCreationTool()
 
 content_creator_agent = Agent(
     name="ContentCreatorAgent",
@@ -43,8 +43,8 @@ content_creator_agent = Agent(
     memory_handler=memory_handler,
     allow_delegation=True,
     verbose=True,
-    tools=[content_creation_tool],
-    tasks=[content_creation_task],
+    tools=[ContentCreationTool],
+    tasks=[generate_content_task],
     user_type="teacher",
     metadata={
         "grade_range": "1-10 and UG",
@@ -53,7 +53,7 @@ content_creator_agent = Agent(
     },
     session_memory_handler=memory_handler,
     session_tools=[content_creation_tool],
-    session_tasks=[content_creation_task],
+    session_tasks=[generate_content_task],
     llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
     code_execution_config={

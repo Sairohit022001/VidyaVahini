@@ -1,15 +1,15 @@
 from crewflows import Agent
-from tools.story_generation_tool import sync_tool
-from storyteller_tasks import sync__task
-from memory.memory_handler import MemoryHandler
+from tools.sync_tool import SyncTool
+from tasks.sync_tasks import run_sync_task
+from crewflows.memory.local_memory_handler import LocalMemoryHandler
      
 
-memory_handler = MemoryHandler(
+memory_handler = LocalMemoryHandler(
     session_id="sync_agent_session",
     file_path="memory/sync_agent_memory.json"
 )       
 
-sync_tool = sync_tool()        
+    
 
 
 sync_agent = Agent(
@@ -39,8 +39,8 @@ sync_agent = Agent(
 9. Supports audio, PDF, and JSON data formats.
 10. A cornerstone agent for offline-first architecture of VidyaVāhinī.
 """,
-    tools=[sync_tool],
-    tasks=[sync__task],
+    tools=[SyncTool],
+    tasks=[run_sync_task],
     memory=True,
     memory_handler=memory_handler,
     allow_delegation=True,

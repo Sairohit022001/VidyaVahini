@@ -1,12 +1,12 @@
 from crewflows import Agent
-from crewai.tools import QuizGenerationTool
-from crewflows.memory import MemoryHandler
-from crewai.tasks import generate_quiz_task
+from tools.quiz_generation_tool import QuizGenerationTool
+from crewflows.memory.local_memory_handler import LocalMemoryHandler 
+from tasks.quiz_tasks import generate_quiz_task
  
 
 
 # Initialize memory handler for the agent
-memory_handler = MemoryHandler(
+memory_handler = LocalMemoryHandler(
     session_id="quiz_agent_session",
     file_path="memory/quiz_agent_memory.json"
 )

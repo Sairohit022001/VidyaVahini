@@ -8,7 +8,7 @@ import os
 # Set path explicitly if not already set
 import os
 print("Current working directory:", os.getcwd())
-print("File exists:", os.path.isfile("/workspaces/VidyaVahini/keys/vidyavahini-tts-3f4de486bdd1.json"))
+print("File exists:", os.path.isfile("/workspaces/VidyaVahini/keys/vidyavahini-tts-01bbac1c6f33.json"))
 
 
 

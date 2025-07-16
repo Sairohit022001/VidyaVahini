@@ -1,10 +1,10 @@
 from crewflows import Agent
-from crewflows.memory import MemoryHandler
-from crewflows.tools.multimodal_research_tool import multimodal_research_tool
-from crewflows.tasks.multimodal_research_task import generate_multimodal_references_task
+from crewflows.memory.local_memory_handler import LocalMemoryHandler
+from tools.multimodal_research_tool import MultimodalResearchTool
+from tasks.multimodal_research_task import generate_multimodal_references_task
 
 
-memory_handler = MemoryHandler(
+memory_handler = LocalMemoryHandler(
     session_id="multimodal_research_session",
     file_path="memory/multimodal_research_memory.json"
 )
@@ -29,7 +29,7 @@ multimodal_research_agent = Agent(
     memory_handler=memory_handler,
     allow_delegation=True,
     verbose=True,
-    tools=[multimodal_research_tool],
+    tools=[MultimodalResearchTool],
     tasks=[generate_multimodal_references_task],
     user_type="teacher",
     metadata={

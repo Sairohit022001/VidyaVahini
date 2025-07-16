@@ -1,17 +1,17 @@
 from crewflows import Agent
-from crewflows.memory import MemoryHandler 
-from crewflows.tools.course_planner_tool import course_planner_tool
-from crewflows.tasks.course_planner_tasks import generate_course_plan_task
+from crewflows.memory.local_memory_handler import LocalMemoryHandler 
+from tools.course_planner_tool import CoursePlannerTool
+from tasks.course_planner_tasks import generate_course_plan_task
 
 
 # Initialize memory handler for the agent
-memory_handler = MemoryHandler(
+memory_handler = LocalMemoryHandler(
     session_id="course_planner_session",                    
     file_path="memory/course_planner_memory.json"
 )   
 
 # Tool for course planner agent
-course_tool = course_planner_tool()
+course_tool = CoursePlannerTool()
 
 
 course_planner_agent = Agent(
@@ -37,7 +37,7 @@ It outputs a clear JSON for integration into dashboards or printed sheets.
     memory_handler=memory_handler,
     allow_delegation=True,
     verbose=True,
-    tools=[course_tool],
+    tools=[CoursePlannerTool],
     tasks=[generate_course_plan_task],
     user_type="teacher",
     metadata={
@@ -46,7 +46,7 @@ It outputs a clear JSON for integration into dashboards or printed sheets.
         "language_support": "Regional dialects supported"
     },
     session_memory_handler=memory_handler,
-    session_tools=[course_tool],
+    session_tools=[CoursePlannerTool],
     session_tasks=[generate_course_plan_task],
     llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
@@ -67,7 +67,7 @@ course_planner_agent.add_output("ClassLevelPerformanceSummary")
 course_planner_agent.add_output("CurriculumProgressionReport")
 course_planner_agent.add_output("PacingGuide")
 course_planner_agent.add_output("LogicalTopicFlow")
-)
+
 
 # Optional advanced inputs:
 course_planner_agent.add_input("ContentCreatorAgent")

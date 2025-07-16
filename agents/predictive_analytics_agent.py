@@ -1,10 +1,10 @@
 from crewflows import Agent
-from crewflows.memory import MemoryHandler
-from crewflows.tools.predictive_analytics_tool import predictive_analytics_tool
-from crewflows.tasks.predictive_analytics_task import generate_class_analytics_task
+from crewflows.memory.local_memory_handler import LocalMemoryHandler 
+from tools.predictive_analytics_tool import predictive_analytics_tool
+from tasks.predictive_analytics_task import generate_class_analytics_task 
 
 
-memory_handler = MemoryHandler(
+memory_handler = LocalMemoryHandler(
     session_id="predictive_analytics_session",
     file_path="memory/predictive_analytics_memory.json"
 )

@@ -1,7 +1,7 @@
 import time
 import functools
 
-def retry_with_backoff(retries=3, delay=1.0):
+def retry_on_failure(retries=3, delay=1.0):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):

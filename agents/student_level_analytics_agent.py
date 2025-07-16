@@ -1,10 +1,10 @@
 from crewflows import Agent
-from crewflows.memory import MemoryHandler
+from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tasks.student_level_analytics_task import generate_student_analytics_task
 from tools.student_level_analytics_tool import student_level_analytics_tool
 
 # Initialize memory handler for this agent session
-memory_handler = MemoryHandler(
+memory_handler = LocalMemoryHandler(
     session_id="student_analytics_session",
     file_path="memory/student_analytics_memory.json"
 )

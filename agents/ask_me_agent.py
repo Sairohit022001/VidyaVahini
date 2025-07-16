@@ -1,7 +1,7 @@
 from crewflows import Agent  # temporarily commented out
 from crewflows.memory.local_memory_handler import LocalMemoryHandler 
-from tasks.ask_me_tasks import ask_me_task
-from crewflows.tools.askme_agent_tool import askme_agent_tool
+from tasks.ask_me_task import ask_question_task
+from tools.ask_me_tool import AskMeTool
 
 
 memory_handler = LocalMemoryHandler(
@@ -9,7 +9,7 @@ memory_handler = LocalMemoryHandler(
     file_path="memory/ask_me_agent_memory.json"
 )
 
-askme_tool = askme_agent_tool()
+askme_tool = AskMeTool()
 
 ask_me_agent = Agent(
     name="AskMeAgent",
@@ -39,8 +39,8 @@ It can also collaborate with BhāṣāGuru for voice narration or CoursePlannerA
     memory_handler=memory_handler,
     allow_delegation=True,
     verbose=True,
-    tools=[askme_tool],
-    tasks=[ask_me_task],
+    tools=[AskMeTool],
+    tasks=[ask_question_task],
     user_type="teacher",
     metadata={
         "grade_range": "1-10 and UG",
@@ -48,8 +48,8 @@ It can also collaborate with BhāṣāGuru for voice narration or CoursePlannerA
         "language_support": "Regional dialects supported"
     },
     session_memory_handler=memory_handler,
-    session_tools=[askme_tool],
-    session_tasks=[askme_task],
+    session_tools=[AskMeTool],
+    session_tasks=[ask_question_task],
     llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
     code_execution_config={"enabled": True,

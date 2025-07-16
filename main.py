@@ -1,3 +1,13 @@
+from dotenv import load_dotenv
+load_dotenv()
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Load .env file
+
+# Set the environment variable explicitly in case it wasn't picked up
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
 import sys
 import signal
 import time
@@ -33,8 +43,7 @@ from crewflows import Crew
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from llms.llm_config import custom_llm_config
 
-from dotenv import load_dotenv
-load_dotenv()
+
 
 
 logging.basicConfig(

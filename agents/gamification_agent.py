@@ -1,14 +1,14 @@
 from crewflows import Agent
-from crewflows.memory import MemoryHandler
-from crewai.tasks import gamification_task
-from crewflows.tools.gamification_agent_tool import gamification_agent_tool   
+from crewflows.memory.local_memory_handler import LocalMemoryHandler
+from tasks.gamification_tasks import generate_gamification_task
+from tools.gamification_tool import GamificationTool 
 
 
-memory_handler = MemoryHandler(
+memory_handler = LocalMemoryHandler(
     session_id="gamification_agent_session",
     file_path="memory/gamification_agent_memory.json"
 )   
-gamification_tool = gamification_agent_tool()   
+gamification_tool = GamificationTool ()   
 
 
 gamification_agent = Agent(
@@ -43,7 +43,7 @@ gamification_agent = Agent(
     allow_delegation=True,
     verbose=True,
     tools=[gamification_tool],
-    tasks=[gamification_task],
+    tasks=[generate_gamification_task],
     user_type="teacher",
     metadata={
         "grade_range": "1-10 and UG",
@@ -52,7 +52,7 @@ gamification_agent = Agent(
     },
     session_memory_handler=memory_handler,
     session_tools=[gamification_tool],
-    session_tasks=[gamification_task],
+    session_tasks=[generate_gamification_task],
     llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
     code_execution_config={

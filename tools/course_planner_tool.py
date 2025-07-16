@@ -1,12 +1,12 @@
 from typing import Dict
 import json
 from tools.utils.retry_handler import retry_on_failure
-from tools.utils.logger import setup_logger
+from tools.utils.logger import get_logger
 from tools.utils.prompt_loader import load_prompt
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 
-logger = setup_logger("CoursePlannerTool")
+logger = get_logger("CoursePlannerTool")
 
 class CoursePlannerTool:
     def __init__(self):
@@ -29,7 +29,7 @@ class CoursePlannerTool:
         result = self.llm.invoke(prompt)
 
         try:
-            return json.loads(result.content)
+            return json.loads(json.dumps(result.content))
         except json.JSONDecodeError:
             logger.error("Invalid JSON received for course planning")
             return {"error": "Course planning failed. Output was not valid JSON.", "raw_response": result.content}
