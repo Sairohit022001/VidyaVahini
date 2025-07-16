@@ -5,7 +5,7 @@ from google.cloud import texttospeech
 # Set the env var if not already set
 GOOGLE_CLOUD_TTS_CREDENTIALS = os.getenv(
     "GOOGLE_APPLICATION_CREDENTIALS",
-    "/workspaces/VidyaVahini/VidyaVahini/keys/vidyavahini-tts-f8942d53e066.json"
+    "/workspaces/VidyaVahini/VidyaVahini/keys/"
 )
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_CLOUD_TTS_CREDENTIALS
