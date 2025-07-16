@@ -2,6 +2,7 @@ from crewai import Agent
 from tools.story_generation_tool import StoryGenerationTool
 from storyteller_tasks import generate_story_task
 from memory.memory_handler import MemoryHandler
+from agents.story_teller_agent import story_teller_agent 
 
 story_tool = StoryGenerationTool()
 

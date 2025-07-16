@@ -2,6 +2,7 @@ from crewai import Agent
 from crewai.memory import MemoryHandler 
 from crewai.tools.course_planner_tool import course_planner_tool
 from crewai.tasks.course_planner_tasks import generate_course_plan_task
+from agents.course_planner_agent import course_planner_agent
 
 # Initialize memory handler for the agent
 memory_handler = MemoryHandler(

@@ -2,6 +2,7 @@ from crewai import Agent
 from crewai.memory import MemoryHandler
 from crewai.tools.predictive_analytics_tool import predictive_analytics_tool
 from crewai.tasks.predictive_analytics_task import generate_class_analytics_task
+from agents.predictive_analytics_agent import predictive_analytics_agent
 
 memory_handler = MemoryHandler(
     session_id="predictive_analytics_session",

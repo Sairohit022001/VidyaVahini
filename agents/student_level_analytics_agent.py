@@ -2,7 +2,7 @@ from crewai import Agent
 from crewai.memory import MemoryHandler
 from tasks.student_level_analytics_task import generate_student_analytics_task
 from tools.student_level_analytics_tool import student_level_analytics_tool
-
+from agents.student_level_analytics_agent import student_analytics_agent
 memory_handler = MemoryHandler(
     session_id="student_analytics_session",
     file_path="memory/student_analytics_memory.json"

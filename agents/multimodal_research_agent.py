@@ -2,6 +2,7 @@ from crewai import Agent
 from crewai.memory import MemoryHandler
 from crewai.tools.multimodal_research_tool import multimodal_research_tool
 from crewai.tasks.multimodal_research_task import generate_multimodal_references_task
+from agents.multimodal_research_agent import multimodal_research_agents
 
 memory_handler = MemoryHandler(
     session_id="multimodal_research_session",

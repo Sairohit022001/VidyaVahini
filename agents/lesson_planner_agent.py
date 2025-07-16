@@ -1,7 +1,9 @@
 from crewai import Agent
+from agents.lesson_planner_agent import lesson_planner_agent
 from tools.lesson_generation_tool import LessonGenerationTool
 from tasks.lesson_planner_tasks import generate_lesson_task
-from crewai.memory.local_memory import LocalMemoryHandler
+from crewai.memory.local_memory_handler import LocalMemoryHandler 
+    
 
 #This memory handler will store the session data for the lesson planner agent 
 memory_handler = LocalMemoryHandler(

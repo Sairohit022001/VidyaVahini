@@ -1,7 +1,8 @@
 from crewai import Agent
 from memory.memory_handler import MemoryHandler 
 from tools.teacher_dashboard_tool import TeacherDashboardTool
-from teacher_dashboard_tasks import teacher_dashboard_task  
+from teacher_dashboard_tasks import teacher_dashboard_task 
+from agents.teacher_dashboard_agent import teacher_dashboard_agent 
 
 teacher_dashboard_tool = TeacherDashboardTool()
 

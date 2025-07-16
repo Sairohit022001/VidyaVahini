@@ -2,6 +2,7 @@ from crewai import Agent
 from crewai.tools import QuizGenerationTool
 from crewai.memory import MemoryHandler
 from crewai.tasks import generate_quiz_task
+from agents.quiz_agent import quiz_agent 
 
 
 # Initialize memory handler for the agent

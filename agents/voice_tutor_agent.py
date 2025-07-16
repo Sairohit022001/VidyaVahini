@@ -1,4 +1,5 @@
 from tasks.voice_tutor_task import VoiceTutorTask
+from agents.voice_tutor_agent import voice_tutor_agent
 
 class VoiceTutorAgent:
     def __init__(self):
