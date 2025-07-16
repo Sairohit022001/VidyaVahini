@@ -1,6 +1,7 @@
-from crewflows import Task
 from pydantic import BaseModel, Field
 from typing import List
+from tasks import Task
+
 
 class LessonOutputSchema(BaseModel):
     topic_title: str = Field(..., description="Title of the lesson topic")

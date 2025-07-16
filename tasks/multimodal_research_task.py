@@ -1,4 +1,5 @@
-from crewflows import Task
+from tasks import Task
+
 
 generate_multimodal_references_task = Task(
     name="GenerateMultimodalReferences",

@@ -1,4 +1,4 @@
-from crewflows import Task
+from tasks import Task
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
