@@ -1,5 +1,4 @@
 from tasks.voice_tutor_task import VoiceTutorTask
-from agents.voice_tutor_agent import voice_tutor_agent
 
 class VoiceTutorAgent:
     def __init__(self):
@@ -16,5 +15,7 @@ class VoiceTutorAgent:
         Returns:
             dict: Output from the VoiceTutorTask with SSML, audio path, and dialect info.
         """
-        # Could add input validation or dialect detection here if needed
         return self.task.run(prompt, dialect)
+
+# ✅ This is what main.py is trying to import
+voice_tutor_agent = VoiceTutorAgent()

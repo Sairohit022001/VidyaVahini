@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 
 class StudentLevelAnalyticsTool:
     def run(self, student_performance: Dict) -> Dict:

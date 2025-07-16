@@ -1,4 +1,4 @@
-from tasks import Task
+from tasks.task import Task
 from pydantic import BaseModel, Field
 from typing import List
 
@@ -9,13 +9,12 @@ class StudentAnalyticsOutputSchema(BaseModel):
     recommendations: List[str] = Field(..., description="Suggested actions or topics to revise")
     progress_score: float = Field(..., description="Normalized progress score or learning growth")
 
+# Create the Task without agent and tool to avoid circular imports
 generate_student_analytics_task = Task(
-    name="GenerateStudentLevelAnalytics",
-    description=(
-        "Given an individual student's performance history, identify their strengths, weaknesses, "
-        "and generate personalized recommendations. Track academic progress over time and suggest "
-        "specific learning interventions."
-    ),
+    name="StudentLevelAnalyticsTask",
+    description="Analyze student performance and return engagement metrics.",
+    agent=None,  # assign dynamically later
+    tool=None,   # assign dynamically later
     inputs=["student_performance"],
     expected_output=StudentAnalyticsOutputSchema,
     output_json=True,
@@ -36,6 +35,5 @@ generate_student_analytics_task = Task(
         "agent": "StudentLevelAnalyticsAgent",
         "access": "teacher_only",
         "triggers": ["on_student_dashboard_request"]
-    },
-    tool="student_level_analytics_tool"
+    }
 )

@@ -9,7 +9,7 @@ generate_multimodal_references_task = Task(
         "Ensure resources are credible and relevant, covering academic papers, educational videos, and trusted websites."
     ),
     inputs=["topic", "grade"],
-    outputs=["references"],
+    expected_output=["references"],
     tool="multimodal_research_tool",
     verbose=True,
     output_json=True,

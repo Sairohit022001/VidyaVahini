@@ -1,12 +1,12 @@
 from typing import Dict
 import json
-from tools.utils.retry_handler import retry_on_failure
-from tools.utils.logger import setup_logger
+from tools.utils.retry_handler import retry_with_backoff
+from tools.utils.logger import get_logger
 from tools.utils.prompt_loader import load_prompt
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 
-logger = setup_logger("DashboardTool")
+logger = get_logger("DashboardTool")
 
 class TeacherDashboardTool:
     def __init__(self):
@@ -17,7 +17,7 @@ class TeacherDashboardTool:
         )
         self.prompt_template = PromptTemplate.from_template(load_prompt("dashboard_metrics.txt"))
 
-    @retry_on_failure()
+    @retry_with_backoff()
     def run(self, inputs: Dict) -> Dict:
         class_data = inputs.get("class_data", {})
 
@@ -26,7 +26,7 @@ class TeacherDashboardTool:
         result = self.llm.invoke(prompt)
 
         try:
-            return json.loads(result.content)
+            response_text = str(result.content).strip()
         except json.JSONDecodeError:
             logger.error("Invalid JSON received for dashboard tool")
             return {"error": "Dashboard generation failed.", "raw_response": result.content}

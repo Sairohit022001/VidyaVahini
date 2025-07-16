@@ -1,17 +1,19 @@
+from typing import List, Optional, Any, Dict
+
 class Task:
     def __init__(
         self,
         name: str,
         description: str,
-        steps: list = None,
-        expected_output=None,
-        tools: list = None,
-        metadata: dict = None,
+        steps: Optional[List[Any]] = None,
+        expected_output: Optional[Any] = None,
+        tools: Optional[List[Any]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
         output_json: bool = False,
         context_injection: bool = False,
         verbose: bool = False,
-        output_file: str = None,
-        guardrails: dict = None
+        output_file: Optional[str] = None,
+        guardrails: Optional[Dict[str, Any]] = None
     ):
         self.name = name
         self.description = description

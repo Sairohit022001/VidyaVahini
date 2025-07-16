@@ -9,7 +9,8 @@ class StoryOutputSchema(BaseModel):
     suggested_visuals: List[str] = Field(..., description="Scene-level prompts for visual generation")
     dialect: str = Field(..., description="Dialect used (e.g., Telangana Telugu)")
 
-generate_story_task = Task(
+generate_story_task = Task
+"""
     name="Generate Contextual Academic Story",
     description=(
         "Receive topic, grade level, and dialect.\n"
@@ -44,5 +45,5 @@ generate_story_task = Task(
         "downstream": ["VisualAgent", "BhāṣāGuru"],
         "triggers": ["on_story_request"]
     }
-)
+"""
 

@@ -1,12 +1,12 @@
 from typing import Dict
 import json
-from tools.utils.retry_handler import retry_on_failure
-from tools.utils.logger import setup_logger
+from tools.utils.retry_handler import retry_with_backoff
+from tools.utils.logger import get_logger
 from tools.utils.prompt_loader import load_prompt
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 
-logger = setup_logger("GamificationTool")
+logger = get_logger("GamificationTool")
 
 class GamificationTool:
     def __init__(self):
@@ -17,7 +17,7 @@ class GamificationTool:
         )
         self.prompt_template = PromptTemplate.from_template(load_prompt("gamification.txt"))
 
-    @retry_on_failure()
+    @retry_with_backoff()
     def run(self, inputs: Dict) -> Dict:
         student_data = inputs.get("student_data", {})
         logger.info("Generating gamification metrics")
@@ -26,7 +26,7 @@ class GamificationTool:
         result = self.llm.invoke(prompt)
 
         try:
-            return json.loads(result.content)
+            response_text = str(result.content).strip()
         except json.JSONDecodeError:
             logger.error("Invalid JSON from LLM for gamification")
             return {"error": "Gamification generation failed.", "raw_response": result.content}

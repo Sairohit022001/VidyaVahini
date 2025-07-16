@@ -15,7 +15,8 @@ Usage:
     Use the `run_ask_me_crew()` function to process user questions and retrieve
     answers, optionally including context to improve response relevance.
 """
-from crewflows import Crew
+from crewflows.core import Crew
+
 from agents.ask_me_agent import ask_me_agent
 from tasks.ask_me_task import ask_question_task
 

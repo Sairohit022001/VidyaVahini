@@ -1,73 +1,66 @@
-# tools/ask_me_tool.py
-
-import os
+from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, Field
 import json
-from typing import Dict, Optional
-from langchain.prompts import PromptTemplate
+import logging
+
+from tools.utils.retry_handler import retry_with_backoff
+from tools.utils.logger import get_logger
+from tools.utils.prompt_loader import load_prompt
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import PromptTemplate
+
+logger = get_logger("AskMeTool")
+
+class AskMeResponseSchema(BaseModel):
+    answer: str = Field(..., description="Detailed and culturally adapted answer to the user's question")
+    source_context: Optional[str] = Field(None, description="Original paragraph/context used for answering")
+    follow_up_question: Optional[str] = Field(None, description="Suggested follow-up or extension question")
+    suggested_agents: Optional[List[str]] = Field(
+        default=["CoursePlannerAgent", "BhāṣāGuru"],
+        description="Downstream agents for voice narration or learning continuation"
+    )
+    confidence_score: Optional[float] = Field(None, description="Model's confidence in the generated answer (0-1)")
+
+    class Config:
+        title = "AskMe Agent Output Schema"
+        description = "Structured output format from AskMeAgent that resolves doubts using Gemini and prior class context."
 
 class AskMeTool:
     def __init__(self):
         self.llm = ChatGoogleGenerativeAI(
             model="gemini-pro",
-            temperature=0.4,
+            temperature=0.7,
             convert_system_message_to_human=True
         )
+        self.prompt_template = PromptTemplate.from_template(load_prompt("ask_me.txt"))
 
-        self.prompt_template = PromptTemplate.from_template("""
-You are a doubt-solving AI designed for Indian education systems across different grades and dialects.
+    @retry_with_backoff()
+    def run(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        question = inputs.get("question", "")
+        context = inputs.get("context", "")
+        dialect = inputs.get("dialect", "Telangana Telugu")
 
-Context:
----------
-{context}
+        prompt = self.prompt_template.format(
+            question=question,
+            context=context,
+            dialect=dialect
+        )
 
-Student/Teacher Question:
--------------------------
-{question}
-
-Instructions:
--------------
-1. Answer based only on the provided context. Avoid hallucinating.
-2. Use regional language tone if dialect is specified.
-3. Generate a possible follow-up question to extend learning.
-4. Output in valid JSON with keys:
-   - answer
-   - source_context
-   - follow_up_question
-   - suggested_agents
-   - confidence_score (0.0–1.0)
-
-Respond only in JSON format.
-""")
-
-    def run(self, inputs: Dict) -> Dict:
-        question = inputs.get("question", "What is transpiration?")
-        context = inputs.get("context", "Plants lose water through small pores called stomata.")
-        
-        prompt = self.prompt_template.format(question=question, context=context)
         result = self.llm.invoke(prompt)
 
         try:
-            response_json = json.loads(result.content)
-            return response_json
+            response_text = str(result.content).strip()
+            logger.info("✅ AskMe response generated")
+            return response_text if isinstance(response_text, dict) else AskMeResponseSchema.parse_raw(response_text).dict()
         except json.JSONDecodeError:
+            logger.error("❌ JSON decoding failed in AskMeTool. Raw response:\n%s", result.content)
             return {
-                "error": "Failed to parse response. LLM did not return valid JSON.",
+                "error": "Invalid JSON response from LLM.",
                 "raw_response": result.content
             }
-
-    @retry_on_failure()
-    def run(self, inputs: Dict) -> Dict:
-        question = inputs.get("question", "What is photosynthesis?")
-        context = inputs.get("context", "Photosynthesis is the process by which plants make food.")
-
-        logger.info(f"Answering question: {question}")
-        prompt = self.prompt_template.format(question=question, context=context)
-        result = self.llm.invoke(prompt)
-
-        try:
-            return json.loads(result.content)
-        except json.JSONDecodeError:
-            logger.error("Invalid JSON received for AskMeTool")
-            return {"error": "AskMeTool failed. Output was not valid JSON.", "raw_response": result.content}
-
+        except Exception as e:
+            logger.exception("🚨 Unexpected error in AskMeTool")
+            return {
+                "error": "Unexpected error during AskMe response generation.",
+                "details": str(e)
+            }
