@@ -1,16 +1,13 @@
 from crewflows import Agent
 from tools.quiz_generation_tool import QuizGenerationTool
-from crewflows.memory.local_memory_handler import LocalMemoryHandler 
+from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tasks.quiz_tasks import generate_quiz_task
- 
 
-
-# Initialize memory handler for the agent
+# Initialize memory handler for QuizAgent
 memory_handler = LocalMemoryHandler(
     session_id="quiz_agent_session",
     file_path="memory/quiz_agent_memory.json"
 )
-
 
 # Initialize the quiz generation tool
 quiz_tool = QuizGenerationTool()
@@ -20,40 +17,46 @@ quiz_agent = Agent(
     role="AI-based adaptive quiz generator",
     goal="""
 1. Automatically generate adaptive quizzes based on AI-generated lessons, stories, and student proficiency levels.
-2. Create a variety of question formats including MCQs, fill-in-the-blanks, true/false, and short answers.
-3. Ensure age-appropriate difficulty by aligning question complexity with grade levels and topic depth.
-4. Leverage regional context and dialect to maintain relevance and cultural inclusivity in questions.
-5. Provide explanations and feedback for each question, enabling formative learning over simple evaluation.
-6. Integrate seamlessly with LessonPlannerAgent, StoryTellerAgent, and VoiceTutorAgent for continuity.
-7. Enable retry mode and reinforcement—regenerate questions for incorrect answers to encourage mastery.
-8. Support offline-first delivery where quizzes are cached and sync back with Firestore via SyncAgent.
-9. Help teachers monitor quiz engagement, scores, misconceptions, and student-specific patterns.
-10. Prepare quizzes in structured JSON for direct export, audio narration, or in-class usage.
+2. Create various question formats: MCQs, fill-in-the-blanks, true/false, short answers.
+3. Ensure age-appropriate difficulty aligned with grade and topic complexity.
+4. Incorporate regional context and dialect for cultural relevance.
+5. Provide explanations and formative feedback per question.
+6. Integrate with LessonPlannerAgent, StoryTellerAgent, and VoiceTutorAgent.
+7. Enable retry mode for mastery by regenerating questions on incorrect answers.
+8. Support offline-first delivery with caching and Firestore sync via SyncAgent.
+9. Assist teachers in monitoring engagement, scores, and misconceptions.
+10. Output structured JSON for export, audio narration, or classroom use.
 """,
     backstory="""
-QuizAgent is an AI teaching assistant trained to craft dynamic, age-appropriate quizzes aligned with India's diverse classrooms. 
-It understands regional diversity, topic difficulty, and student learning levels. 
-It bridges AI-generated content with classroom assessments, enabling teachers to quickly generate relevant quizzes. 
-It supports retry, explains correct answers, and boosts understanding—not just grading. 
-This agent collaborates with LessonPlannerAgent, StoryTellerAgent, and BhāṣāGuru to deliver voice-enabled assessments 
-and tracks progress for teacher dashboards.
+QuizAgent is an AI assistant creating dynamic, culturally aware quizzes aligned with India's classrooms. 
+It bridges AI content and assessments, supporting retries and explanation-based learning.
+Works with LessonPlannerAgent, StoryTellerAgent, BhāṣāGuru for voice-enabled assessments.
+Tracks progress for teacher dashboards.
 """,
     memory=True,
     memory_handler=memory_handler,
     allow_delegation=True,
     verbose=True,
-    tools=[QuizGenerationTool()],
+    tools=[quiz_tool],
     tasks=[generate_quiz_task],
     llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
-    code_execution_config={"enabled": True,"executor_type": "kirchhoff-async"},
+    code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
     user_type="teacher",
-    metadata={"grade_range": "1-10 and UG", "access": "teacher_only", "delegates_to": ["CoursePlannerAgent"]}
+    metadata={
+        "grade_range": "1-10 and UG",
+        "access": "teacher_only",
+        "delegates_to": ["CoursePlannerAgent"]
+    }
 )
+
+# Declare accepted inputs
 quiz_agent.add_input("LessonPlannerAgent")
-quiz_agent.add_input("StoryTellerAgent")  # Optional: for story-based quizzes
-quiz_agent.add_input("VoiceTutorAgent")  # Optional: for audio narration of quizzes
-quiz_agent.add_input("BhāṣāGuru")  # Optional: for dialect-specific audio
+quiz_agent.add_input("StoryTellerAgent")  # for story-based quizzes
+quiz_agent.add_input("VoiceTutorAgent")   # for audio narration of quizzes
+quiz_agent.add_input("BhāṣāGuru")         # for dialect-specific audio
+
+# Declare expected outputs
 quiz_agent.add_output("quiz_json")
 quiz_agent.add_output("adaptive_quiz_set")
 quiz_agent.add_output("student_scores")

@@ -2,15 +2,12 @@ from crewflows import Agent
 from tools.sync_tool import SyncTool
 from tasks.sync_tasks import run_sync_task
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
-     
 
+# Initialize memory handler for Sync Agent
 memory_handler = LocalMemoryHandler(
     session_id="sync_agent_session",
     file_path="memory/sync_agent_memory.json"
-)       
-
-    
-
+)
 
 sync_agent = Agent(
     name="SyncAgent",
@@ -47,7 +44,7 @@ sync_agent = Agent(
     verbose=True,
     llm_config={"model": "gemini-pro", "temperature": 0.7, "max_tokens": 2048},
     respect_context_window=True,
-    code_execution_config={"enabled": True,"executor_type": "kirchhoff-async"},
+    code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
     user_type="teacher",
     metadata={
         "grade_range": "1-10 and UG",
@@ -56,8 +53,11 @@ sync_agent = Agent(
     }
 )
 
+# Declare accepted inputs
 sync_agent.add_input("OfflineLessonUpdates")
 sync_agent.add_input("StudentInteractionData")
+
+# Declare expected outputs
 sync_agent.add_output("FirestoreSyncStatus")
 sync_agent.add_output("OfflineUpdatesPending")
 sync_agent.add_output("IndexedDBData")

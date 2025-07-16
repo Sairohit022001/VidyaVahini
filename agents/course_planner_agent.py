@@ -3,7 +3,6 @@ from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tools.course_planner_tool import CoursePlannerTool
 from tasks.course_planner_tasks import generate_course_plan_task
 
-
 # Initialize memory handler for the agent
 memory_handler = LocalMemoryHandler(
     session_id="course_planner_session",                    
@@ -12,7 +11,6 @@ memory_handler = LocalMemoryHandler(
 
 # Tool for course planner agent
 course_tool = CoursePlannerTool()
-
 
 course_planner_agent = Agent(
     name="CoursePlannerAgent",
@@ -37,7 +35,7 @@ It outputs a clear JSON for integration into dashboards or printed sheets.
     memory_handler=memory_handler,
     allow_delegation=True,
     verbose=True,
-    tools=[CoursePlannerTool],
+    tools=[course_tool],
     tasks=[generate_course_plan_task],
     user_type="teacher",
     metadata={
@@ -45,18 +43,24 @@ It outputs a clear JSON for integration into dashboards or printed sheets.
         "subject_areas": "All subjects",
         "language_support": "Regional dialects supported"
     },
-    session_memory_handler=memory_handler,
-    session_tools=[CoursePlannerTool],
-    session_tasks=[generate_course_plan_task],
     llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
-    code_execution_config={"enabled": True,
-    "executor_type": "kirchhoff-async"
+    code_execution_config={
+        "enabled": True,
+        "executor_type": "kirchhoff-async"
     },
 )
+
+# Add inputs from relevant agents
 course_planner_agent.add_input("QuizAgent")
 course_planner_agent.add_input("StudentLevelAgent")
 course_planner_agent.add_input("TeacherDashboardAgent")
+
+# Add optional advanced inputs
+course_planner_agent.add_input("ContentCreatorAgent")
+course_planner_agent.add_input("PredictiveAnalyticsAgent")
+
+# Register outputs
 course_planner_agent.add_output("NextTopicRecommendation")
 course_planner_agent.add_output("AdaptiveNextTopicRecommendation")
 course_planner_agent.add_output("RelatedResearchPapers")
@@ -67,8 +71,3 @@ course_planner_agent.add_output("ClassLevelPerformanceSummary")
 course_planner_agent.add_output("CurriculumProgressionReport")
 course_planner_agent.add_output("PacingGuide")
 course_planner_agent.add_output("LogicalTopicFlow")
-
-
-# Optional advanced inputs:
-course_planner_agent.add_input("ContentCreatorAgent")
-course_planner_agent.add_input("PredictiveAnalyticsAgent")

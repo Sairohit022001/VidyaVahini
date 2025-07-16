@@ -1,15 +1,14 @@
 from crewflows import Agent
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tasks.gamification_tasks import generate_gamification_task
-from tools.gamification_tool import GamificationTool 
-
+from tools.gamification_tool import GamificationTool
 
 memory_handler = LocalMemoryHandler(
     session_id="gamification_agent_session",
     file_path="memory/gamification_agent_memory.json"
-)   
-gamification_tool = GamificationTool ()   
+)
 
+gamification_tool = GamificationTool()
 
 gamification_agent = Agent(
     name="GamificationAgent",
@@ -48,47 +47,28 @@ gamification_agent = Agent(
     metadata={
         "grade_range": "1-10 and UG",
         "subject_areas": "All subjects",
-        "language_support": "Regional dialects supported"
+        "language_support": "Regional dialects supported",
+        "dependencies": ["QuizAgent", "ContentCreatorAgent", "StudentLevelAgent"],
+        "tags": ["gamification", "education", "engagement", "progress tracking"],
+        "icon": "https://example.com/gamification_icon.png",
+        "version": "1.0.0",
+        "author": "EduTech Team",
+        "license": "MIT"
     },
-    session_memory_handler=memory_handler,
-    session_tools=[gamification_tool],
-    session_tasks=[generate_gamification_task],
     llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
     code_execution_config={
         "enabled": True,
         "executor_type": "kirchhoff-async"
-    },
-    tags=["gamification", "education", "engagement", "progress tracking"],
-    icon="https://example.com/gamification_icon.png",
-    version="1.0.0",
-    author="EduTech Team",
-    license="MIT",
-    dependencies=["QuizAgent", "ContentCreatorAgent", "StudentLevelAgent"],
-    inputs=["QuizAgent", "ContentCreatorAgent", "StudentLevelAgent"],
-    outputs=["XPStatus", "BadgeStatus", "LeaderboardData", "GamificationSummary"],
-    max_concurrency=5,
-    max_tokens=5000,
-    temperature=0.7,
-    top_p=0.9,
-    frequency_penalty=0.0,
-    presence_penalty=0.0,
-    system_prompt="""You are a Gamification Agent designed to enhance classroom learning through gamified elements. Your tasks include assigning experience points (XP) for student activities, unlocking badges for achievements, and maintaining a leaderboard to foster competition and motivation among students. You will also provide a summary of gamification activities and support teachers in defining rules for XP and badges. Your goal is to create an engaging and motivating learning environment that encourages student participation and progress tracking. You will integrate with other agents like QuizAgent and StudentLevelAgent to
-)
-    track student activities and achievements effectively. Your responses should be clear, concise, and focused on enhancing the gamification experience in the classroom.""",
-    system_prompt_template="""You are a Gamification Agent designed to enhance classroom learning through gamified elements. Your tasks include assigning experience points (XP) for student activities, unlocking badges for achievements, and maintaining a leaderboard to foster competition and motivation among students. You will also provide a summary of gamification activities and support teachers in
-defining rules for XP and badges. Your goal is to create an engaging and motivating learning environment that encourages student participation and progress tracking. You will integrate with other agents like QuizAgent and StudentLevelAgent to track student activities and achievements effectively. Your responses should be clear, concise, and focused on enhancing the gamification experience in the classroom.""",
-    system_prompt_variables={},
-    system_prompt_variables_defaults={},
-    system_prompt_variables_required=[],            
-    system_prompt_variables_optional=[],    
+    }
 )
 
-
+# Register inputs
 gamification_agent.add_input("QuizAgent")
 gamification_agent.add_input("ContentCreatorAgent")
 gamification_agent.add_input("StudentLevelAgent")
 
+# Register outputs
 gamification_agent.add_output("XPStatus")
 gamification_agent.add_output("BadgeStatus")
 gamification_agent.add_output("LeaderboardData")

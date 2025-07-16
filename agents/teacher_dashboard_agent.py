@@ -1,15 +1,16 @@
 from crewflows import Agent
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tools.dashboard_tool import TeacherDashboardTool
-from tasks.dashboard_tasks import generate_dashboard_metrics_task 
+from tasks.dashboard_tasks import generate_dashboard_metrics_task
 
-
+# Initialize dashboard tool
 teacher_dashboard_tool = TeacherDashboardTool()
 
+# Initialize memory handler
 memory_handler = LocalMemoryHandler(
     session_id="teacher_dashboard_agent_session",
     file_path="memory/teacher_dashboard_agent_memory.json"
-)   
+)
 
 teacher_dashboard_agent = Agent(
     name="TeacherDashboardAgent",
@@ -41,15 +42,12 @@ teacher_dashboard_agent = Agent(
     tools=[teacher_dashboard_tool],
     tasks=[generate_dashboard_metrics_task],
     memory=True,
-    memory_handler= LocalMemoryHandler(
-        session_id="teacher_dashboard_agent_session",
-        file_path="memory/teacher_dashboard_agent_memory.json"
-    ),
+    memory_handler=memory_handler,
     allow_delegation=True,
     verbose=True,
     llm_config={"model": "gemini-pro", "temperature": 0.7, "max_tokens": 2048},
     respect_context_window=True,
-    code_execution_config={"enabled": True,"executor_type": "kirchhoff-async"},
+    code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
     user_type="teacher",
     metadata={
         "grade_range": "1-10 and UG",
@@ -58,10 +56,12 @@ teacher_dashboard_agent = Agent(
     }
 )
 
+# Declare accepted inputs
 teacher_dashboard_agent.add_input("QuizAgent")
 teacher_dashboard_agent.add_input("StudentLevelAgent")
 teacher_dashboard_agent.add_input("PredictiveAnalyticsAgent")
 
+# Declare expected outputs
 teacher_dashboard_agent.add_output("WeeklyMetrics")
 teacher_dashboard_agent.add_output("DropoutAlerts")
 teacher_dashboard_agent.add_output("LessonViewStats")

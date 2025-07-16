@@ -1,1 +1,11 @@
 .env
+# Ignore environment variable files
+.env
+*.env
+
+# Ignore keys and credentials
+keys/
+*.json
+# Ignore Python cache files
+__pycache__/
+*.pyc

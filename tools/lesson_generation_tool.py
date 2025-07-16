@@ -3,15 +3,14 @@
 from typing import Dict, Any
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
+from langchain.schema import HumanMessage  # <-- Import HumanMessage for wrapping prompt
 import json
 import logging
 
 import sys
 print(sys.path)
 
-
 from .utils.prompt_loader import get_prompt_template
-
 from tools.utils.retry_handler import retry_with_backoff
 from tools.utils.logger import get_logger
 
@@ -35,9 +34,13 @@ class LessonGenerationTool:
         dialect = inputs.get("dialect", "Telangana Telugu")
 
         prompt = self.prompt_template.format(topic=topic, level=level, dialect=dialect)
+        print("📌 Prompt sent to Gemini:\n", prompt)
 
         try:
-            result = self.llm.invoke(prompt)
+            # Wrap the prompt string as a HumanMessage inside a list
+            messages = [HumanMessage(content=prompt)]
+            result = self.llm.invoke(messages)
+
             response_text = result.content.strip()
 
             parsed = json.loads(response_text)

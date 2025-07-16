@@ -1,21 +1,40 @@
 from crewflows import Agent
-
 from tools.lesson_generation_tool import LessonGenerationTool
 from tasks.lesson_planner_tasks import generate_lesson_task
-from crewflows.memory.local_memory_handler import LocalMemoryHandler 
-    
+from crewflows.memory.local_memory_handler import LocalMemoryHandler
 
-#This memory handler will store the session data for the lesson planner agent 
+# Memory handler for the lesson planner agent
 memory_handler = LocalMemoryHandler(
     session_id="teacher_lesson_session",
     file_path="memory/lesson_planner_memory.json"
 )
 
-#Tool for lesson planner agent
+# Tool for lesson planner agent
 lesson_tool = LessonGenerationTool()
 
-#Define Agent
-lesson_planner_agent = Agent(
+class LessonPlannerAgent(Agent):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    async def process(self, inputs: dict):
+        topic = inputs.get("topic")
+        level = inputs.get("level")
+        dialect = inputs.get("dialect")
+        context_from_doc = inputs.get("context_from_doc", {})
+
+        context = {
+            "topic": topic,
+            "level": level,
+            "dialect": dialect,
+            "context_from_doc": context_from_doc,
+        }
+
+        # Run the lesson generation tool
+        result = lesson_tool.run(inputs=context)
+        return result
+
+# Instantiate the agent
+lesson_planner_agent = LessonPlannerAgent(
     name="lesson_planner_agent",
     role="AI co-teacher that helps educators design structured lessons, quizzes, stories, and visual content.",
     goal="""
@@ -59,9 +78,9 @@ Your mission is to uplift classrooms by turning teacher ideas into structured ed
         "grade_range": "1-10 and UG",
         "access": "teacher_only",
         "delegates_to": [
-            "QuizAgent", 
-            "StoryTellerAgent", 
-            "VisualAgent", 
+            "QuizAgent",
+            "StoryTellerAgent",
+            "VisualAgent",
             "MultimodalResearchAgent"
         ],
         "accepts_context_from": [
@@ -84,7 +103,7 @@ Your mission is to uplift classrooms by turning teacher ideas into structured ed
     }
 )
 
-# Explicitly declare accepted input sources
+# Declare accepted inputs
 lesson_planner_agent.add_input("topic")
 lesson_planner_agent.add_input("level")
 lesson_planner_agent.add_input("dialect")

@@ -1,19 +1,43 @@
 from crewflows import Agent
 from tools.story_generation_tool import StoryGenerationTool
 from tasks.story_teller_tasks import generate_story_task
-from crewflows.memory.local_memory_handler import LocalMemoryHandler 
+from crewflows.memory.local_memory_handler import LocalMemoryHandler
 
-
-story_tool = StoryGenerationTool()
-
+# Memory handler for story teller agent
 memory_handler = LocalMemoryHandler(
     session_id="story_teller_agent_session",
     file_path="memory/story_teller_agent_memory.json"
-)   
+)
 
+# Tool for story teller agent
+story_tool = StoryGenerationTool()
 
+class StoryTellerAgent(Agent):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-story_teller_agent = Agent(
+    async def process(self, inputs: dict):
+        # Extract inputs, adjust according to what you expect
+        lesson_plan = inputs.get("lesson_plan_json")
+        topic = inputs.get("topic")
+        level = inputs.get("level")
+        dialect = inputs.get("dialect")
+
+        # Compose context for story generation task
+        context = {
+            "lesson_plan_json": lesson_plan,
+            "topic": topic,
+            "level": level,
+            "dialect": dialect,
+        }
+
+        # Run your story generation task asynchronously
+        result = await generate_story_task.run(context)
+
+        return result
+
+# Instantiate your agent
+story_teller_agent = StoryTellerAgent(
     id="story-teller-agent",
     name="StoryTellerAgent",
     role="AI assistant for generating contextual, cultural stories for teachers",
@@ -49,7 +73,7 @@ story_teller_agent = Agent(
     verbose=True,
     llm_config={"model": "gemini-pro", "temperature": 0.7, "max_tokens": 2048},
     respect_context_window=True,
-    code_execution_config={"enabled": True,"executor_type": "kirchhoff-async"},
+    code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
     user_type="teacher",
     metadata={
         "grade_range": "1-10 and UG",
@@ -57,6 +81,8 @@ story_teller_agent = Agent(
         "delegates_to": ["VisualAgent"]
     }
 )
+
+# Declare inputs and outputs
 story_teller_agent.add_input("LessonPlannerAgent")
 story_teller_agent.add_output("story_title")
 story_teller_agent.add_output("story_body")

@@ -1,19 +1,11 @@
 from dotenv import load_dotenv
 load_dotenv()
 import os
-from dotenv import load_dotenv
-
-load_dotenv()  # Load .env file
-
-# Set the environment variable explicitly in case it wasn't picked up
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-
 import sys
 import signal
 import time
 import asyncio
 import logging
-import os
 from fastapi import FastAPI, Request, HTTPException, Depends, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,8 +13,8 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, validator
 from typing import Optional, Dict
 from functools import wraps
-
-import structlog 
+import structlog
+import traceback
 
 from agents.lesson_planner_agent import lesson_planner_agent
 from agents.story_teller_agent import story_teller_agent
@@ -43,9 +35,26 @@ from crewflows import Crew
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from llms.llm_config import custom_llm_config
 
+# Set environment variable explicitly (important for Google credentials)
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
+# Initialize FastAPI app once here
+app = FastAPI(
+    title="VIDYAVAHINI",
+    description="Empowering teachers in multi-grade classrooms",
+    version="1.0.0",
+)
 
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# Logging setup
 logging.basicConfig(
     format="%(message)s",
     stream=sys.stdout,
@@ -53,40 +62,31 @@ logging.basicConfig(
 )
 logger = structlog.get_logger("vidyavahini_main")
 
-
-MAX_PROMPT_LENGTH = 2000  
-
+MAX_PROMPT_LENGTH = 2000
 API_KEY = os.getenv("VIDYAVAHINI_API_KEY")
 if not API_KEY:
     logger.error("API key not set in environment variable VIDYAVAHINI_API_KEY")
     sys.exit(1)
 
-#Helper function
+# Helper functions & global variables
 def get_client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
-# Rate limiting setup 
-RATE_LIMIT = 20  
-RATE_LIMIT_INTERVAL = 60  
+RATE_LIMIT = 20
+RATE_LIMIT_INTERVAL = 60
 client_requests = {}
 
 def rate_limiter(client_ip: str) -> bool:
     current_time = time.time()
     window_start = current_time - RATE_LIMIT_INTERVAL
-
     if client_ip not in client_requests:
         client_requests[client_ip] = []
-
-    
     client_requests[client_ip] = [t for t in client_requests[client_ip] if t > window_start]
-
     if len(client_requests[client_ip]) >= RATE_LIMIT:
         return False
-
     client_requests[client_ip].append(current_time)
     return True
 
-# API key verification 
 async def verify_api_key(request: Request):
     api_key = request.headers.get("x-api-key")
     client_ip = get_client_ip(request)
@@ -95,13 +95,12 @@ async def verify_api_key(request: Request):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API Key")
     return True
 
-# Memory Handler
+# Memory handler and Crew initialization
 global_memory = LocalMemoryHandler(
     session_id="vidyavahini_main_session",
     file_path="memory/vidyavahini_main_memory.json"
 )
 
-#Crew Initialization
 vidyavahini_crew = Crew(
     agents=[
         lesson_planner_agent,
@@ -134,25 +133,7 @@ vidyavahini_crew = Crew(
     """,
 )
 
-# FastAPI App Setup
-app = FastAPI(
-    title="VIDYAVAHINI",
-    description="Empowering teachers in multi-grade classrooms",
-    version="1.0.0",
-)
-
-# CORS setup 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[  
-        "*",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-#  Request/Response models
+# Request and response models
 class CrewRequest(BaseModel):
     prompt: str = Field(..., max_length=MAX_PROMPT_LENGTH, description="User prompt for AI Crew")
     context: Optional[Dict] = Field(default_factory=dict)
@@ -178,7 +159,11 @@ def rate_limit_endpoint(func):
         return await func(request, *args, **kwargs)
     return wrapper
 
-#API Endpoint
+# Routes
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 @app.post("/api/run", response_model=CrewResponse, dependencies=[Depends(verify_api_key)])
 @rate_limit_endpoint
 async def run_crew(request: Request, crew_request: CrewRequest):
@@ -195,10 +180,11 @@ async def run_crew(request: Request, crew_request: CrewRequest):
         logger.error("Crew run timed out", client_ip=client_ip)
         raise HTTPException(status_code=504, detail="Crew processing timed out")
     except Exception as e:
-        logger.error("Crew execution error", client_ip=client_ip, error=str(e), exc_info=True)
+        error_trace = traceback.format_exc()
+        logger.error("Crew execution error", client_ip=client_ip, error=str(e), trace=error_trace)
         raise HTTPException(status_code=500, detail="Internal server error")
 
-# Exception handlers 
+# Exception handlers
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     client_ip = get_client_ip(request)
@@ -226,7 +212,7 @@ async def general_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal server error"},
     )
 
-#  Graceful shutdown
+# Graceful shutdown
 shutdown_event = asyncio.Event()
 
 def handle_shutdown(signum, frame):

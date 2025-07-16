@@ -1,20 +1,18 @@
 from crewflows import Agent
 from tools.visual_generation_tool import VisualGenerationTool
 from tasks.visual_generation_task import generate_visual_task
-from  crewflows.memory.local_memory_handler import LocalMemoryHandler
- 
+from crewflows.memory.local_memory_handler import LocalMemoryHandler
 
 # Initialize the visual generation tool
-visual_generation_tool = VisualGenerationTool() 
+visual_generation_tool = VisualGenerationTool()
 
 # Set up memory handler for the visual agent
 memory_handler = LocalMemoryHandler(
-    session_id="visual_agent_session",      
+    session_id="visual_agent_session",
     file_path="memory/visual_agent_memory.json"
-)   
+)
 
 # Define the VisualAgent with its properties and capabilities
-
 visual_agent = Agent(
     name="VisualAgent",
     role="AI assistant for educational illustration generation",
@@ -56,10 +54,7 @@ visual_agent = Agent(
         "deems it necessary to fulfill its role in generating educational visuals."
     ),
     memory=True,
-    memory_handler=LocalMemoryHandler(
-        session_id="visual_agent_session",
-        file_path="memory/visual_agent_memory.json"
-    ),
+    memory_handler=memory_handler,
     allow_delegation=True,
     verbose=True,
     llm_config={"model": "gemini-pro", "temperature": 0.7, "max_tokens": 2048},
@@ -73,8 +68,11 @@ visual_agent = Agent(
     }
 )
 
+# Declare accepted inputs
 visual_agent.add_input("LessonPlannerAgent")
 visual_agent.add_input("StoryTellerAgent")
+
+# Declare expected outputs
 visual_agent.add_output("dalle_prompts")
 visual_agent.add_output("generated_images")
 visual_agent.add_output("scene_descriptions")
