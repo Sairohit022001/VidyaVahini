@@ -2,12 +2,14 @@ from crewai import Agent
 from crewai.memory import MemoryHandler
 from tasks.student_level_analytics_task import generate_student_analytics_task
 from tools.student_level_analytics_tool import student_level_analytics_tool
-from agents.student_level_analytics_agent import student_analytics_agent
+
+# Initialize memory handler for this agent session
 memory_handler = MemoryHandler(
     session_id="student_analytics_session",
     file_path="memory/student_analytics_memory.json"
 )
 
+# Define the Student Level Analytics Agent
 student_level_analytics_agent = Agent(
     name="StudentLevelAnalyticsAgent",
     role="Per-student learning performance evaluator",
@@ -36,7 +38,10 @@ student_level_analytics_agent = Agent(
     code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
 )
 
+# Define inputs accepted by the agent
 student_level_analytics_agent.add_input("student_performance")
+
+# Define outputs produced by the agent
 student_level_analytics_agent.add_output("strengths")
 student_level_analytics_agent.add_output("weaknesses")
 student_level_analytics_agent.add_output("recommendations")
