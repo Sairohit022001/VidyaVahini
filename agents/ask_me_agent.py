@@ -1,10 +1,10 @@
 from crewflows import Agent  # temporarily commented out
-from crewflows.memory import MemoryHandler
-from crewai.tasks import askme_task
+from crewflows.memory.local_memory_handler import LocalMemoryHandler 
+from tasks.ask_me_tasks import ask_me_task
 from crewflows.tools.askme_agent_tool import askme_agent_tool
-from agents.ask_me_agent import ask_me_agent
 
-memory_handler = MemoryHandler(
+
+memory_handler = LocalMemoryHandler(
     session_id="ask_me_agent_session",
     file_path="memory/ask_me_agent_memory.json"
 )
@@ -40,7 +40,7 @@ It can also collaborate with BhāṣāGuru for voice narration or CoursePlannerA
     allow_delegation=True,
     verbose=True,
     tools=[askme_tool],
-    tasks=[askme_task],
+    tasks=[ask_me_task],
     user_type="teacher",
     metadata={
         "grade_range": "1-10 and UG",

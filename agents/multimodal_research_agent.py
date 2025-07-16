@@ -2,7 +2,7 @@ from crewflows import Agent
 from crewflows.memory import MemoryHandler
 from crewflows.tools.multimodal_research_tool import multimodal_research_tool
 from crewflows.tasks.multimodal_research_task import generate_multimodal_references_task
-from agents.multimodal_research_agent import multimodal_research_agents
+
 
 memory_handler = MemoryHandler(
     session_id="multimodal_research_session",

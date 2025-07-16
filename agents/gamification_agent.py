@@ -2,7 +2,8 @@ from crewflows import Agent
 from crewflows.memory import MemoryHandler
 from crewai.tasks import gamification_task
 from crewflows.tools.gamification_agent_tool import gamification_agent_tool   
-from agents.gamification_agent import gamification_agent 
+
+
 memory_handler = MemoryHandler(
     session_id="gamification_agent_session",
     file_path="memory/gamification_agent_memory.json"

@@ -2,7 +2,7 @@ from crewflows import Agent
 from tools.visual_generation_tool import VisualGenerationTool
 from tasks.visual_agent_tasks import generate_visuals_task
 from memory.memory_handler import MemoryHandler
-from agents.visual_agent import visual_agent 
+ 
 
 # Initialize the visual generation tool
 visual_generation_tool = VisualGenerationTool() 

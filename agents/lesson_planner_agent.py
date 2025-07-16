@@ -1,5 +1,5 @@
 from crewflows import Agent
-from agents.lesson_planner_agent import lesson_planner_agent
+
 from tools.lesson_generation_tool import LessonGenerationTool
 from tasks.lesson_planner_tasks import generate_lesson_task
 from crewflows.memory.local_memory_handler import LocalMemoryHandler 
