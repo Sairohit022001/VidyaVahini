@@ -2,11 +2,22 @@ from crewflows import Agent
 from tools.lesson_generation_tool import LessonGenerationTool
 from tasks.lesson_planner_tasks import generate_lesson_task
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
+from langchain_google_genai import ChatGoogleGenerativeAI
+import os
+# Load API key from environment
+google_api_key = os.getenv("GOOGLE_API_KEY")
 
 # Memory handler for the lesson planner agent
 memory_handler = LocalMemoryHandler(
     session_id="teacher_lesson_session",
     file_path="memory/lesson_planner_memory.json"
+)
+
+# Define the LLM
+llm = ChatGoogleGenerativeAI(
+    model="gemini-1.5-pro-latest",
+    google_api_key=google_api_key,
+    temperature=0.3
 )
 
 # Tool for lesson planner agent
@@ -120,3 +131,100 @@ lesson_planner_agent.add_output("linked_story_prompts")
 lesson_planner_agent.add_output("quiz_questions")
 lesson_planner_agent.add_output("regional_language_support")
 lesson_planner_agent.add_output("offline_exportable_content")
+
+
+
+
+
+
+
+from crewai import Agent
+from tools.lesson_generation_tool import lesson_tool
+from langchain_google_genai import ChatGoogleGenerativeAI
+from tasks.lesson_planner_task import LessonPlannerTask
+import os
+from typing import Any, Dict
+
+# Load API key from environment
+google_api_key = os.getenv("GOOGLE_API_KEY")
+
+# Define the LLM
+llm = ChatGoogleGenerativeAI(
+    model="gemini-1.5-pro-latest",
+    google_api_key=google_api_key,
+    temperature=0.3
+)
+
+# Define the Lesson Planner Agent
+lesson_planner_agent = Agent(
+    name="LessonPlannerAgent",
+    role="Curriculum and Lesson Designer",
+    goal=(
+        "Design engaging and research-backed lessons for students based on selected topic, level, and region."
+    ),
+    backstory=(
+        "You are an expert lesson planner specializing in regional curriculum design. "
+        "You break down complex topics into understandable lessons, drawing from relevant research, "
+        "ensuring students of all levels can learn effectively."
+    ),
+    verbose=True,
+    allow_delegation=False,
+    tools=[lesson_tool],
+    llm=llm
+)
+
+# Wrapper class to use in main.py or orchestrator
+class LessonPlannerAgentWrapper:
+    def __init__(self):
+        self.agent = lesson_planner_agent
+        self.task = LessonPlannerTask()
+
+    async def execute(self, topic: str, level: str, dialect: str = "default", context_from_doc: Dict = {}) -> Dict[str, Any]:
+        """
+        Execute the Lesson Planner agent asynchronously.
+
+        Args:
+            topic (str): The educational topic to generate a lesson on.
+            level (str): The difficulty level (e.g., primary, secondary).
+            dialect (str): The regional dialect to use.
+            context_from_doc (dict): Optional context from uploaded PDF.
+
+        Returns:
+            dict: Structured lesson plan including concept explanation, research, questions, etc.
+        """
+        return await self.task.run(topic, level, dialect, context_from_doc)
+
+    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Alternative interface using dictionary-based inputs (for crew integration).
+
+        Args:
+            inputs (dict): Dictionary with 'topic', 'level', 'dialect', and optional 'context_from_doc'.
+
+        Returns:
+            dict: Lesson output or error.
+        """
+        topic = inputs.get("topic")
+        level = inputs.get("level")
+        dialect = inputs.get("dialect", "default")
+        context_from_doc = inputs.get("context_from_doc", {})
+
+        context = {
+            "topic": topic,
+            "level": level,
+            "dialect": dialect,
+            "context_from_doc": context_from_doc
+        }
+
+        try:
+            result = lesson_tool.run(inputs=context)
+
+            if isinstance(result, dict):
+                return result
+            elif isinstance(result, list):
+                return result[0] if result else {}
+            else:
+                return {"lesson_output": str(result).strip()}
+
+        except Exception as e:
+            return {"error": f"LessonPlannerAgent process() failed: {str(e)}"}

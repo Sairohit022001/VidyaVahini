@@ -3,6 +3,7 @@ from typing import Dict
 
 class VoiceTutorAgent:
     def __init__(self):
+        self.name = "voice_tutor"  # ✅ Added this line
         self.task = VoiceTutorTask()
 
     async def execute(self, prompt: str, dialect: str = "default") -> Dict:

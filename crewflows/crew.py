@@ -8,7 +8,7 @@ class Crew:
         self.agents = agents
         self.tasks = tasks or []
         self.verbose = verbose
-        # ... you can add other initialization as needed ...
+        
 
     def kickoff(self, inputs: dict):
         """
@@ -45,7 +45,7 @@ class Crew:
                 logger.error(f"Agent {agent.name} failed: {e}")
                 results[agent.name] = {"error": str(e)}
 
-        # You can extend here to run tasks, delegate, or run agents in parallel if needed
+        
 
         return results
 

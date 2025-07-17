@@ -39,9 +39,11 @@ class LessonGenerationTool:
         try:
             # Wrap the prompt string as a HumanMessage inside a list
             messages = [HumanMessage(content=prompt)]
-            result = self.llm.invoke(messages)
+            result = self.llm.invoke([
+    HumanMessage(content="Explain photosynthesis.")
+])
 
-            response_text = result.content.strip()
+            response_text = result.content.strip() if hasattr(result, "content") else str(result).strip()
 
             parsed = json.loads(response_text)
             logger.info(f"✅ Lesson generated for topic: {topic}")
