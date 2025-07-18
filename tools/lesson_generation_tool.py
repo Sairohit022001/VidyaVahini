@@ -3,12 +3,10 @@
 from typing import Dict, Any
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
-from langchain.schema import HumanMessage  # <-- Import HumanMessage for wrapping prompt
+from langchain.schema import HumanMessage
 import json
 import logging
-
 import sys
-print(sys.path)
 
 from .utils.prompt_loader import get_prompt_template
 from tools.utils.retry_handler import retry_with_backoff
@@ -37,14 +35,10 @@ class LessonGenerationTool:
         print("📌 Prompt sent to Gemini:\n", prompt)
 
         try:
-            # Wrap the prompt string as a HumanMessage inside a list
             messages = [HumanMessage(content=prompt)]
-            result = self.llm.invoke([
-    HumanMessage(content="Explain photosynthesis.")
-])
+            result = self.llm.invoke(messages)
 
             response_text = result.content.strip() if hasattr(result, "content") else str(result).strip()
-
             parsed = json.loads(response_text)
             logger.info(f"✅ Lesson generated for topic: {topic}")
             return parsed
@@ -61,3 +55,6 @@ class LessonGenerationTool:
                 "error": "Unexpected failure during lesson generation",
                 "details": str(e)
             }
+
+# ✅ Only instantiate after class is fully defined
+lesson_tool = LessonGenerationTool()

@@ -1,11 +1,19 @@
 import os
-if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/workspaces/VidyaVahini/keys/"
 
-import json
+
 from google.cloud import texttospeech
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/workspaces/VidyaVahini/keys/"
+from google.oauth2 import service_account
+from google.cloud import texttospeech
+
+import os
+from google.oauth2 import service_account
+
+key_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+if not key_path:
+    raise Exception("GOOGLE_APPLICATION_CREDENTIALS environment variable not set")
+
+credentials = service_account.Credentials.from_service_account_file(key_path)
 
 
 # Dialect clustering map example

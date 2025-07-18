@@ -3,6 +3,7 @@ from typing import List
 from tasks import Task
 
 
+
 class LessonOutputSchema(BaseModel):
     topic_title: str = Field(..., description="Title of the lesson topic")
     introduction: str = Field(..., description="Introductory explanation of the topic")
