@@ -1,11 +1,11 @@
 import os
 if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/workspaces/VidyaVahini/keys/vidyavahini-tts-e8508da0e7c3.json"
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/workspaces/VidyaVahini/keys/"
 
 import json
 from google.cloud import texttospeech
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/workspaces/VidyaVahini/keys/vidyavahini-tts-e8508da0e7c3.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/workspaces/VidyaVahini/keys/"
 
 
 # Dialect clustering map example
