@@ -9,3 +9,5 @@ keys/
 # Ignore Python cache files
 __pycache__/
 *.pyc
+.env
+keys/*.json
