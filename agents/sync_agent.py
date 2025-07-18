@@ -3,15 +3,45 @@ from tools.sync_tool import SyncTool
 from tasks.sync_tasks import run_sync_task
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 
-# Initialize memory handler for Sync Agent
 memory_handler = LocalMemoryHandler(
     session_id="sync_agent_session",
     file_path="memory/sync_agent_memory.json"
 )
 
-sync_agent = Agent(
+class SyncAgentWrapper(Agent):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    async def process(self, inputs: dict):
+        """
+        Asynchronously handle synchronization inputs and perform offline/online sync operations.
+
+        Args:
+            inputs (dict): Contains offline lesson updates and student interaction data.
+
+        Returns:
+            dict: Sync status, pending offline updates, and current IndexedDB snapshot.
+        """
+        try:
+            result = await run_sync_task.run(inputs)
+            return result
+        except Exception as e:
+            return {"error": f"SyncAgent process() failed: {str(e)}"}
+
+sync_agent = SyncAgentWrapper(
     name="SyncAgent",
-    role="Offline-aware synchronization handler",
+    role="""
+1. Enable real-time synchronization between local IndexedDB and Firestore backend.
+2. Handle offline-to-online transitions gracefully.
+3. Maintain a sync queue for data generated while offline.
+4. Prevent data duplication or overwrites via conflict resolution.
+5. Track sync status visibly on the teacher dashboard.
+6. Sync lesson plans, quiz scores, and user activity.
+7. Alert teachers if students remain unsynced for long durations.
+8. Support auto-sync and manual sync trigger modes.
+9. Minimize network usage by syncing diffs, not full data.
+10. Work in the background without interrupting the teaching flow.
+""",
     goal="""
 1. Enable real-time synchronization between local IndexedDB and Firestore backend.
 2. Handle offline-to-online transitions gracefully.

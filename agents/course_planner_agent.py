@@ -71,3 +71,28 @@ course_planner_agent.add_output("ClassLevelPerformanceSummary")
 course_planner_agent.add_output("CurriculumProgressionReport")
 course_planner_agent.add_output("PacingGuide")
 course_planner_agent.add_output("LogicalTopicFlow")
+
+
+# Fix for 'Agent' object has no attribute 'process'
+def process(self, input_data):
+    """
+    Runs all assigned tasks sequentially or as per framework logic,
+    passing input_data and returning aggregated result.
+    """
+    results = {}
+    for task in getattr(self, "tasks", []):
+        # Ensure task is callable and has run method
+        if hasattr(task, "run") and callable(task.run):
+            result = task.run(input_data)
+            results[task.__class__.__name__] = result
+        elif callable(task):
+            result = task(input_data)
+            results[task.__class__.__name__] = result
+        else:
+            raise AttributeError(f"Task {task} has no runnable method.")
+    return results
+
+# Bind process method to the agent instance
+import types
+course_planner_agent.process = types.MethodType(process, course_planner_agent)
+

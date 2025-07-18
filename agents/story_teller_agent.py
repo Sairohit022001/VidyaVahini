@@ -17,13 +17,17 @@ class StoryTellerAgent(Agent):
         super().__init__(*args, **kwargs)
 
     async def process(self, inputs: dict):
-        # Extract inputs, adjust according to what you expect
         lesson_plan = inputs.get("lesson_plan_json")
         topic = inputs.get("topic")
         level = inputs.get("level")
         dialect = inputs.get("dialect")
 
-        # Compose context for story generation task
+        # Input validation to avoid empty calls
+        if not lesson_plan:
+            return {"error": "Missing required input 'lesson_plan_json'"}
+        if not topic:
+            return {"error": "Missing required input 'topic'"}
+
         context = {
             "lesson_plan_json": lesson_plan,
             "topic": topic,
@@ -31,10 +35,11 @@ class StoryTellerAgent(Agent):
             "dialect": dialect,
         }
 
-        # Run your story generation task asynchronously
-        result = await generate_story_task.run(context)
-
-        return result
+        try:
+            result = await generate_story_task.run(context)
+            return result
+        except Exception as e:
+            return {"error": f"StoryTellerAgent process() failed: {str(e)}"}
 
 # Instantiate your agent
 story_teller_agent = StoryTellerAgent(
@@ -90,3 +95,11 @@ story_teller_agent.add_output("moral")
 story_teller_agent.add_output("visual_prompts")
 story_teller_agent.add_output("localized_dialect_story")
 story_teller_agent.add_output("audio_narration")
+
+
+import types
+def sync_process(self, inputs: dict):
+    import asyncio
+    return asyncio.run(self.process(inputs))
+
+story_teller_agent.sync_process = types.MethodType(sync_process, story_teller_agent)

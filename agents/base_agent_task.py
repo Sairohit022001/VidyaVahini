@@ -1,31 +1,41 @@
 from abc import ABC, abstractmethod
+from crewflows import Agent
 
-class BaseAgent(ABC):
-    name = "BaseAgent"
+class CrewBaseAgent(Agent, ABC):
+    """
+    Base class for all crewflows Agents in VidyaVāhinī.
+    Handles required 'goal' parameter and enforces process() implementation.
+    """
 
-    def __init__(self):
-        pass
+    def __init__(self, *args, goal=None, **kwargs):
+        if goal is None:
+            raise ValueError(f"Missing required 'goal' argument for {self.__class__.__name__}")
+        super().__init__(*args, goal=goal, **kwargs)
 
     @abstractmethod
-    def process(self, input_data):
+    async def process(self, inputs: dict) -> dict:
         """
-        Process method that each agent must implement.
+        Abstract process method that all agents must implement.
+
         Args:
-            input_data: Input data for the agent to process
+            inputs (dict): Input data for the agent.
+
         Returns:
-            result of processing
+            dict: Result of agent processing.
         """
         pass
 
 class BaseTask(ABC):
-    name = "BaseTask"
-
-    def __init__(self):
-        pass
+    """
+    Abstract base class for all task classes used by agents.
+    """
 
     @abstractmethod
-    def run(self, *args, **kwargs):
+    async def run(self, *args, **kwargs) -> dict:
         """
-        Run method that each task must implement.
+        Abstract run method to be implemented by task classes.
+
+        Returns:
+            dict: Task execution result.
         """
         pass

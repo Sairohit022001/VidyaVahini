@@ -3,26 +3,28 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 
 class QuizOutputSchema(BaseModel):
-    topic: str
-    grade_level: str
-    questions: List[dict] = Field(..., description="List of question dictionaries with question, options, answer, explanation")
-    format_type: str = Field(..., description="MCQ / Fill-in-the-blank / Match-the-following")
-    total_marks: int = Field(..., description="Total marks")
-    dialect_adapted: bool = Field(..., description="Indicates if question is adapted for dialect")
+    topic: str = Field(..., description="Topic of the quiz based on the lesson")
+    grade_level: str = Field(..., description="Target grade level for the quiz")
+    questions: List[dict] = Field(
+        ...,
+        description="List of question dictionaries each containing question text, options, correct answer, and explanation"
+    )
+    format_type: str = Field(..., description="Format of quiz questions, e.g., MCQ, Fill-in-the-blank, Match-the-following")
+    total_marks: int = Field(..., description="Total marks for the quiz")
+    dialect_adapted: bool = Field(..., description="Indicates if the questions are adapted for regional dialect")
 
 generate_quiz_task = Task(
     name="Generate Quiz from Lesson",
     description=(
         "Accept lesson content and grade level.\n"
-        "Generate 5–10 questions based on core concepts.\n"
-        "Questions must match format_type (MCQ / Fill-in / Match).\n"
-        "Ensure age-appropriate language.\n"
-        "Include explanations for answers.\n"
-        "Adapt questions for provided dialect.\n"
-        "Ensure curriculum alignment.\n"
-        "Avoid repetition or trivial questions.\n"
-        "Use JSON output following schema.\n"
-        "Questions should be auto-gradable."
+        "Generate 5–10 questions covering core concepts.\n"
+        "Ensure question formats match the specified format_type (MCQ, Fill-in-the-blank, Match-the-following).\n"
+        "Use age-appropriate and dialect-adapted language.\n"
+        "Include explanations for each answer.\n"
+        "Maintain alignment with curriculum standards.\n"
+        "Avoid repetition and trivial questions.\n"
+        "Output JSON following the QuizOutputSchema.\n"
+        "Ensure questions are auto-gradable."
     ),
     expected_output=QuizOutputSchema,
     output_json=True,
@@ -47,4 +49,3 @@ generate_quiz_task = Task(
         "triggers": ["on_lesson_completion"]
     }
 )
-

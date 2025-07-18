@@ -12,8 +12,38 @@ memory_handler = LocalMemoryHandler(
 # Tool setup
 askme_tool = AskMeTool()
 
-# Agent definition
-ask_me_agent = Agent(
+class AskMeAgent(Agent):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    async def process(self, inputs: dict):
+        try:
+            # You can adapt input keys as needed here
+            question = inputs.get("user_question")
+            dialect = inputs.get("user_dialect")
+            grade = inputs.get("user_grade")
+            lesson_content = inputs.get("current_lesson_content")
+            past_lessons = inputs.get("past_lessons", {})
+            research_pdfs = inputs.get("research_pdfs", {})
+            session_memory = inputs.get("session_memory", {})
+
+            context = {
+                "question": question,
+                "dialect": dialect,
+                "grade": grade,
+                "current_lesson_content": lesson_content,
+                "past_lessons": past_lessons,
+                "research_pdfs": research_pdfs,
+                "session_memory": session_memory,
+            }
+
+            result = await ask_question_task.run(context)
+            return result
+        except Exception as e:
+            return {"error": f"AskMeAgent process() failed: {str(e)}"}
+
+# Instantiate the agent
+ask_me_agent = AskMeAgent(
     name="AskMeAgent",
     role="Contextual Q&A assistant for teachers and advanced learners",
     goal=(
