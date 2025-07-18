@@ -9,10 +9,12 @@ class StudentAnalyticsOutputSchema(BaseModel):
     recommendations: List[str] = Field(..., description="Suggested actions or topics to revise")
     progress_score: float = Field(..., description="Normalized progress score or learning growth")
 
-# Create the Task without agent and tool to avoid circular imports
 generate_student_analytics_task = Task(
     name="StudentLevelAnalyticsTask",
-    description="Analyze student performance and return engagement metrics.",
+    description=(
+        "Analyze student quiz and activity data to provide personalized insights, "
+        "strengths, weaknesses, recommendations, and progress scores."
+    ),
     agent=None,  # assign dynamically later
     tool=None,   # assign dynamically later
     inputs=["student_performance"],
@@ -28,12 +30,12 @@ generate_student_analytics_task = Task(
             "strengths": [],
             "weaknesses": [],
             "recommendations": [],
-            "progress_score": 0.0
+            "progress_score": 0.0,
         }
     },
     metadata={
         "agent": "StudentLevelAnalyticsAgent",
         "access": "teacher_only",
-        "triggers": ["on_student_dashboard_request"]
-    }
+        "triggers": ["on_student_dashboard_request"],
+    },
 )

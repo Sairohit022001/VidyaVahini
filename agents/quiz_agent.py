@@ -12,7 +12,35 @@ memory_handler = LocalMemoryHandler(
 # Initialize the quiz generation tool
 quiz_tool = QuizGenerationTool()
 
-quiz_agent = Agent(
+class QuizAgent(Agent):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    async def process(self, inputs: dict):
+        # Extract inputs from upstream agents
+        lesson_plan = inputs.get("lesson_plan_json")
+        story = inputs.get("story_body")
+        audio_data = inputs.get("audio_data")  # from VoiceTutorAgent or BhāṣāGuru
+
+        # Validate inputs (at least one content source needed)
+        if not any([lesson_plan, story, audio_data]):
+            return {"error": "QuizAgent requires at least one input: lesson_plan_json, story_body, or audio_data"}
+
+        context = {
+            "lesson_plan_json": lesson_plan,
+            "story_body": story,
+            "audio_data": audio_data,
+            # Add other relevant keys as needed
+        }
+
+        try:
+            result = await generate_quiz_task.run(context)
+            return result
+        except Exception as e:
+            return {"error": f"QuizAgent process() failed: {str(e)}"}
+
+# Instantiate your agent
+quiz_agent = QuizAgent(
     name="QuizAgent",
     role="AI-based adaptive quiz generator",
     goal="""
@@ -61,3 +89,10 @@ quiz_agent.add_output("quiz_json")
 quiz_agent.add_output("adaptive_quiz_set")
 quiz_agent.add_output("student_scores")
 quiz_agent.add_output("retry_feedback_report")
+
+import types
+def sync_process(self, inputs: dict):
+    import asyncio
+    return asyncio.run(self.process(inputs))
+
+quiz_agent.sync_process = types.MethodType(sync_process, quiz_agent)

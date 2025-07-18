@@ -7,8 +7,7 @@ class ClassAnalyticsOutputSchema(BaseModel):
     top_performers: List[str] = Field(..., description="List of top-performing student IDs or names")
     weak_areas: List[str] = Field(..., description="List of commonly misunderstood topics or concepts")
     lesson_plan_suggestions: List[str] = Field(
-        ...,
-        description="Chapters or concepts to re-emphasize in future lessons"
+        ..., description="Chapters or concepts to re-emphasize in future lessons"
     )
 
 generate_class_analytics_task = Task(

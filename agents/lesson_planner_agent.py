@@ -14,7 +14,6 @@ memory_handler = LocalMemoryHandler(
     file_path="memory/lesson_planner_memory.json"
 )
 # Define the LLM
-# Define the LLM
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-pro-latest",
     google_api_key=google_api_key,
@@ -24,15 +23,21 @@ llm = ChatGoogleGenerativeAI(
 # Tool for lesson planner agent
 lesson_tool = LessonGenerationTool()
 
+
 class LessonPlannerAgent(Agent):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     async def process(self, inputs: dict):
+        # Validate inputs to avoid empty content errors with Gemini
         topic = inputs.get("topic")
         level = inputs.get("level")
-        dialect = inputs.get("dialect")
+        dialect = inputs.get("dialect", "default")
         context_from_doc = inputs.get("context_from_doc", {})
+
+        # Simple validation
+        if not topic:
+            return {"error": "Missing required input 'topic'"}
 
         context = {
             "topic": topic,
@@ -41,9 +46,15 @@ class LessonPlannerAgent(Agent):
             "context_from_doc": context_from_doc,
         }
 
-        # Run the lesson generation tool
-        result = lesson_tool.run(inputs=context)
-        return result
+        try:
+            # Call the lesson generation tool - assume this is sync; if async, await it
+            result = lesson_tool.run(inputs=context)
+            return result
+
+        except Exception as e:
+            # Catch and return error details for debugging
+            return {"error": f"LessonPlannerAgent process() failed: {str(e)}"}
+
 
 # Instantiate the agent
 lesson_planner_agent = LessonPlannerAgent(
@@ -116,62 +127,6 @@ Your mission is to uplift classrooms by turning teacher ideas into structured ed
 )
 
 
-class LessonPlannerAgentWrapper:
-    def __init__(self):
-        self.agent = lesson_planner_agent
-        self.task = LessonPlannerTask()
-
-    async def execute(self, topic: str, level: str, dialect: str = "default", context_from_doc: Dict = {}) -> Dict[str, Any]:
-        """
-        Execute the Lesson Planner agent asynchronously.
-
-        Args:
-            topic (str): The educational topic to generate a lesson on.
-            level (str): The difficulty level (e.g., primary, secondary).
-            dialect (str): The regional dialect to use.
-            context_from_doc (dict): Optional context from uploaded PDF.
-
-        Returns:
-            dict: Structured lesson plan including concept explanation, research, questions, etc.
-        """
-        return await self.task.run(topic, level, dialect, context_from_doc)
-
-    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Alternative interface using dictionary-based inputs (for crew integration).
-
-        Args:
-            inputs (dict): Dictionary with 'topic', 'level', 'dialect', and optional 'context_from_doc'.
-
-        Returns:
-            dict: Lesson output or error.
-        """
-        topic = inputs.get("topic")
-        level = inputs.get("level")
-        dialect = inputs.get("dialect", "default")
-        context_from_doc = inputs.get("context_from_doc", {})
-
-        context = {
-            "topic": topic,
-            "level": level,
-            "dialect": dialect,
-            "context_from_doc": context_from_doc
-        }
-
-        try:
-            result = lesson_tool.run(inputs=context)
-
-            if isinstance(result, dict):
-                return result
-            elif isinstance(result, list):
-                return result[0] if result else {}
-            else:
-                return {"lesson_output": str(result).strip()}
-
-        except Exception as e:
-            return {"error": f"LessonPlannerAgent process() failed: {str(e)}"}
-
-
 # Declare accepted inputs
 lesson_planner_agent.add_input("topic")
 lesson_planner_agent.add_input("level")
@@ -189,3 +144,14 @@ lesson_planner_agent.add_output("linked_story_prompts")
 lesson_planner_agent.add_output("quiz_questions")
 lesson_planner_agent.add_output("regional_language_support")
 lesson_planner_agent.add_output("offline_exportable_content")
+
+import types
+
+# Add a sync 'process' method on the agent instance if async is not used elsewhere
+def sync_process(self, inputs: dict):
+    import asyncio
+    return asyncio.run(self.process(inputs))
+
+# Attach sync_process as well for flexibility
+lesson_planner_agent.sync_process = types.MethodType(sync_process, lesson_planner_agent)
+

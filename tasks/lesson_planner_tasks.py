@@ -2,8 +2,6 @@ from pydantic import BaseModel, Field
 from typing import List
 from tasks import Task
 
-
-
 class LessonOutputSchema(BaseModel):
     topic_title: str = Field(..., description="Title of the lesson topic")
     introduction: str = Field(..., description="Introductory explanation of the topic")
@@ -50,7 +48,7 @@ generate_lesson_task = Task(
     metadata={
         "agent": "LessonPlannerAgent",
         "access": "teacher_only",
-        "downstream": ["QuizAgent", "StoryTellerAgent", "VisualAgent","MultimodalResearchAgent"],
+        "downstream": ["QuizAgent", "StoryTellerAgent", "VisualAgent", "MultimodalResearchAgent"],
         "triggers": ["on_topic_selection"]
     }
 )

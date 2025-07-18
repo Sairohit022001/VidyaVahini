@@ -8,23 +8,60 @@ memory_handler = LocalMemoryHandler(
     file_path="memory/student_analytics_memory.json"
 )
 
-student_level_analytics_agent = Agent(
+class StudentLevelAnalyticsAgent(Agent):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    async def process(self, inputs: dict):
+        try:
+            # Extract relevant input data for analysis
+            quiz_history = inputs.get("quiz_history", {})
+            student_id = inputs.get("student_id")
+            timeframe = inputs.get("timeframe", "last_month")
+            additional_context = inputs.get("additional_context", {})
+
+            context = {
+                "quiz_history": quiz_history,
+                "student_id": student_id,
+                "timeframe": timeframe,
+                "additional_context": additional_context
+            }
+
+            # Run the analysis task asynchronously
+            from tasks.student_level_analytics_task import generate_student_analytics_task
+            result = await generate_student_analytics_task.run(context)
+
+            return result
+        except Exception as e:
+            return {"error": f"StudentLevelAnalyticsAgent process() failed: {str(e)}"}
+
+student_level_analytics_agent = StudentLevelAnalyticsAgent(
     name="StudentLevelAnalyticsAgent",
-    role="Per-student learning performance evaluator",
-    goal=(
-        "Analyze individual student's quiz history to identify gaps, "
-        "track progress over time, and provide personalized feedback."
-    ),
-    backstory=(
-        "Assists teachers and students in understanding learning patterns, strengths, weaknesses, "
-        "and delivers tailored study advice."
-    ),
+    role="""Per-student learning performance evaluator focused on individualized insights and recommendations:
+1. Analyze quiz attempts and accuracy trends per student.
+2. Identify learning gaps and misconceptions.
+3. Track progress over different timeframes.
+4. Provide personalized feedback and study recommendations.
+5. Detect topic mastery and retention issues.
+6. Support teachers with actionable insights for interventions.
+7. Integrate with other agents for holistic learner profiles.
+8. Adapt to student learning pace and style.
+9. Maintain privacy and session-based memory securely.
+10. Export findings in JSON for dashboards and reports.
+""",
+    goal="""To empower educators by delivering in-depth, personalized student learning analytics,
+highlighting strengths, weaknesses, and progress trajectories to inform targeted teaching strategies.""",
+    backstory="""StudentLevelAnalyticsAgent acts as the dedicated analytics partner,
+helping teachers and students make sense of individual learning journeys.
+It synthesizes quiz data, performance metrics, and contextual info into clear insights,
+supporting continuous improvement and personalized learning experiences.
+It complements other VidyaVāhinī agents by providing foundational data-driven feedback.""",
     memory=True,
     memory_handler=memory_handler,
     allow_delegation=False,
     verbose=True,
     tools=[student_level_analytics_tool],  # Tool instance assigned here
-    tasks=[],  # Initially empty, task assigned dynamically below
+    tasks=[],  # Task assigned dynamically below
     user_type="teacher",
     metadata={
         "analysis_type": "student",

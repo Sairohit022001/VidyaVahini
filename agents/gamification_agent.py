@@ -10,10 +10,28 @@ memory_handler = LocalMemoryHandler(
 
 gamification_tool = GamificationTool()
 
-gamification_agent = Agent(
+class GamificationAgentWrapper(Agent):
+    def __init__(self, **kwargs):
+        # Provide default goal if not passed
+        if 'goal' not in kwargs:
+            kwargs['goal'] = (
+                "Assign XP based on quiz participation and lesson interaction; "
+                "unlock badges for milestones; track leaderboard positions; "
+                "promote student engagement via challenges and streak tracking."
+            )
+        super().__init__(**kwargs)
+
+    async def process(self, inputs: dict):
+        try:
+            # Assuming generate_gamification_task.run() is sync; if async, use await
+            result = generate_gamification_task.run(inputs)
+            return result
+        except Exception as e:
+            return {"error": f"GamificationAgent process() failed: {str(e)}"}
+
+gamification_agent = GamificationAgentWrapper(
     name="GamificationAgent",
-    role="Gamify classroom learning and progress tracking",
-    goal="""
+    role="""
 1. Assign XP based on quiz participation and lesson interaction.
 2. Unlock badges for milestones or consistency.
 3. Power a student leaderboard visible to all.

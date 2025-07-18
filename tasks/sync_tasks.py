@@ -43,4 +43,3 @@ run_sync_task = Task(
         "triggers": ["on_dashboard_load", "on_app_start"]
     }
 )
-

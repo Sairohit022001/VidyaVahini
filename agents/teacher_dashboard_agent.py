@@ -12,7 +12,29 @@ memory_handler = LocalMemoryHandler(
     file_path="memory/teacher_dashboard_agent_memory.json"
 )
 
-teacher_dashboard_agent = Agent(
+class TeacherDashboardAgent(Agent):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    async def process(self, inputs: dict):
+        try:
+            # Extract inputs as needed for dashboard metrics
+            quiz_data = inputs.get("QuizAgent")
+            student_levels = inputs.get("StudentLevelAgent")
+            predictive_data = inputs.get("PredictiveAnalyticsAgent")
+
+            context = {
+                "quiz_data": quiz_data,
+                "student_levels": student_levels,
+                "predictive_data": predictive_data,
+            }
+
+            result = await generate_dashboard_metrics_task.run(context)
+            return result
+        except Exception as e:
+            return {"error": f"TeacherDashboardAgent process() failed: {str(e)}"}
+
+teacher_dashboard_agent = TeacherDashboardAgent(
     name="TeacherDashboardAgent",
     role="Real-time analytics and alert generator for teachers",
     goal="""
