@@ -11,3 +11,40 @@ __pycache__/
 *.pyc
 .env
 keys/*.json
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+env/
+ENV/
+venv/
+
+# JSON Keys
+*.json
+!telangana_dialect_map.json
+!firebase.json
+
+# Jupyter/IPython
+.ipynb_checkpoints/
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Logs
+*.log
+
+# OS Files
+.DS_Store
+Thumbs.db

@@ -1,10 +1,11 @@
 from crewflows import Agent
 from tools.lesson_generation_tool import LessonGenerationTool
 from tasks.lesson_planner_tasks import generate_lesson_task
+from typing import Any, Dict
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from langchain_google_genai import ChatGoogleGenerativeAI
 import os
-# Load API key from environment
+
 google_api_key = os.getenv("GOOGLE_API_KEY")
 
 # Memory handler for the lesson planner agent
@@ -12,7 +13,7 @@ memory_handler = LocalMemoryHandler(
     session_id="teacher_lesson_session",
     file_path="memory/lesson_planner_memory.json"
 )
-
+# Define the LLM
 # Define the LLM
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-pro-latest",
@@ -76,7 +77,7 @@ Your mission is to uplift classrooms by turning teacher ideas into structured ed
     memory_handler=memory_handler,
     allow_delegation=True,
     verbose=True,
-    tools=[lesson_tool],
+    tools=[LessonGenerationTool()],
     tasks=[generate_lesson_task],
     llm_config={"model": "gemini-pro", "temperature": 0.6},
     respect_context_window=True,
@@ -114,66 +115,7 @@ Your mission is to uplift classrooms by turning teacher ideas into structured ed
     }
 )
 
-# Declare accepted inputs
-lesson_planner_agent.add_input("topic")
-lesson_planner_agent.add_input("level")
-lesson_planner_agent.add_input("dialect")
-lesson_planner_agent.add_input("context_from_doc")
-lesson_planner_agent.add_input("MultimodalResearchAgent")
 
-# Declare expected outputs
-lesson_planner_agent.add_output("lesson_plan_json")
-lesson_planner_agent.add_output("core_concepts_list")
-lesson_planner_agent.add_output("lesson_summary")
-lesson_planner_agent.add_output("suggested_agents")
-lesson_planner_agent.add_output("recommended_visuals")
-lesson_planner_agent.add_output("linked_story_prompts")
-lesson_planner_agent.add_output("quiz_questions")
-lesson_planner_agent.add_output("regional_language_support")
-lesson_planner_agent.add_output("offline_exportable_content")
-
-
-
-
-
-
-
-from crewai import Agent
-from tools.lesson_generation_tool import lesson_tool
-from langchain_google_genai import ChatGoogleGenerativeAI
-from tasks.lesson_planner_task import LessonPlannerTask
-import os
-from typing import Any, Dict
-
-# Load API key from environment
-google_api_key = os.getenv("GOOGLE_API_KEY")
-
-# Define the LLM
-llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-pro-latest",
-    google_api_key=google_api_key,
-    temperature=0.3
-)
-
-# Define the Lesson Planner Agent
-lesson_planner_agent = Agent(
-    name="LessonPlannerAgent",
-    role="Curriculum and Lesson Designer",
-    goal=(
-        "Design engaging and research-backed lessons for students based on selected topic, level, and region."
-    ),
-    backstory=(
-        "You are an expert lesson planner specializing in regional curriculum design. "
-        "You break down complex topics into understandable lessons, drawing from relevant research, "
-        "ensuring students of all levels can learn effectively."
-    ),
-    verbose=True,
-    allow_delegation=False,
-    tools=[lesson_tool],
-    llm=llm
-)
-
-# Wrapper class to use in main.py or orchestrator
 class LessonPlannerAgentWrapper:
     def __init__(self):
         self.agent = lesson_planner_agent
@@ -228,3 +170,22 @@ class LessonPlannerAgentWrapper:
 
         except Exception as e:
             return {"error": f"LessonPlannerAgent process() failed: {str(e)}"}
+
+
+# Declare accepted inputs
+lesson_planner_agent.add_input("topic")
+lesson_planner_agent.add_input("level")
+lesson_planner_agent.add_input("dialect")
+lesson_planner_agent.add_input("context_from_doc")
+lesson_planner_agent.add_input("MultimodalResearchAgent")
+
+# Declare expected outputs
+lesson_planner_agent.add_output("lesson_plan_json")
+lesson_planner_agent.add_output("core_concepts_list")
+lesson_planner_agent.add_output("lesson_summary")
+lesson_planner_agent.add_output("suggested_agents")
+lesson_planner_agent.add_output("recommended_visuals")
+lesson_planner_agent.add_output("linked_story_prompts")
+lesson_planner_agent.add_output("quiz_questions")
+lesson_planner_agent.add_output("regional_language_support")
+lesson_planner_agent.add_output("offline_exportable_content")
