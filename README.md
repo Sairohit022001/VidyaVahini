@@ -12,6 +12,7 @@ VidyaVāhinī is an offline-first, multilingual, multimodal education platform p
 | Nanditha Vuppunuthula |               [LinkedIn](https://www.linkedin.com/in/nandithav/)        |
 | Srujana Jasmine Komarabathina  | [LinkedIn](https://www.linkedin.com/in/srujana-jasmine-komarabathina-4234a423a/) |
 | Deepanshi Bansal  | [LinkedIn](https://www.linkedin.com/in/deepanshi-bansal2002/) |
+| Amritha S | [LinkedIn](https://www.linkedin.com/in/amritha-s-oo/) |
 
 ## Project Goals
 - Develop an AI-driven lesson planner generating rich educational content.
