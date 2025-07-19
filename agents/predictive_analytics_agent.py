@@ -3,7 +3,7 @@ from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tools.predictive_analytics_tool import PredictiveAnalyticsTool
 from tasks.predictive_analytics_task import PredictiveAnalyticsTask
 from langchain_google_genai import ChatGoogleGenerativeAI
-
+import os
 
 # Initialize memory handler
 memory_handler = LocalMemoryHandler(

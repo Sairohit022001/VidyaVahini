@@ -5,7 +5,7 @@ from crewflows.memory.local_memory_handler import LocalMemoryHandler
 # Assuming Task is crewai.Task, you might need to import it if used for type checking
 # from crewai import Task
 from langchain_google_genai import ChatGoogleGenerativeAI
-
+import os
 # Memory handler for story teller agent
 memory_handler = LocalMemoryHandler(
     session_id="story_teller_agent_session",

@@ -3,7 +3,7 @@ from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tools.multimodal_research_tool import MultimodalResearchTool
 from tasks.multimodal_research_task import MultimodalResearchTask
 from langchain_google_genai import ChatGoogleGenerativeAI
-
+import os
 
 # Initialize memory handler
 memory_handler = LocalMemoryHandler(

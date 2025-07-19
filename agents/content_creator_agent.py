@@ -3,7 +3,7 @@ from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tasks.content_creation_tasks import generate_content_task
 from tools.content_creation_tool import ContentCreationTool
 from langchain_google_genai import ChatGoogleGenerativeAI
-
+import os
 # Initialize memory handler
 memory_handler = LocalMemoryHandler(
     session_id="content_creator_agent_session",

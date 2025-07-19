@@ -3,7 +3,7 @@ from tools.visual_generation_tool import VisualGenerationTool
 from tasks.visual_generation_task import VisualGenerationTask
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from langchain_google_genai import ChatGoogleGenerativeAI
-
+import os
 # Initialize the visual generation tool instance
 visual_generation_tool = VisualGenerationTool()
 

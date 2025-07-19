@@ -5,7 +5,7 @@ from tasks.quiz_tasks import QuizTask # Import the class
 # Assuming Task is crewai.Task, you might need to import it if used for type checking
 # from crewai import Task
 from langchain_google_genai import ChatGoogleGenerativeAI
-
+import os
 # Initialize memory handler for QuizAgent
 memory_handler = LocalMemoryHandler(
     session_id="quiz_agent_session",
