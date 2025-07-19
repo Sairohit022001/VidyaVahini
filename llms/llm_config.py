@@ -1,5 +1,5 @@
 custom_llm_config = {
-    "model": "gemini-pro",
+    "model": "models/gemini-2.5-pro",
     "temperature": 0.6,
     "top_p": 0.9,
     "top_k": 40,

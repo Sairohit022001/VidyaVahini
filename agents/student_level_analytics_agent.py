@@ -1,12 +1,21 @@
 from crewflows import Agent
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tools.student_level_analytics_tool import student_level_analytics_tool
+from tasks.student_level_analytics_task import StudentLevelAnalyticsTask  # import class only
+from langchain_google_genai import ChatGoogleGenerativeAI
+from dotenv import load_dotenv
+load_dotenv()
+import os
+google_api_key = os.getenv("GOOGLE_API_KEY")
 
 # Initialize memory handler for Student Level Analytics Agent
 memory_handler = LocalMemoryHandler(
     session_id="student_analytics_session",
     file_path="memory/student_analytics_memory.json"
 )
+
+# Create a global instance of the task
+student_analytics_task = StudentLevelAnalyticsTask()
 
 class StudentLevelAnalyticsAgent(Agent):
     def __init__(self, *args, **kwargs):
@@ -27,9 +36,8 @@ class StudentLevelAnalyticsAgent(Agent):
                 "additional_context": additional_context
             }
 
-            # Run the analysis task asynchronously
-            from tasks.student_level_analytics_task import generate_student_analytics_task
-            result = await generate_student_analytics_task.run(context)
+            # Run the analysis task asynchronously using the global instance
+            result = await student_analytics_task.run(context)
 
             return result
         except Exception as e:
@@ -61,20 +69,21 @@ It complements other VidyaVāhinī agents by providing foundational data-driven 
     allow_delegation=False,
     verbose=True,
     tools=[student_level_analytics_tool],  # Tool instance assigned here
-    tasks=[],  # Task assigned dynamically below
+    tasks=[student_analytics_task],       # Use the global instance here
     user_type="teacher",
     metadata={
         "analysis_type": "student",
         "output_format": "JSON"
     },
-    llm_config={"model": "gemini-pro", "temperature": 0.5},
+    llm=ChatGoogleGenerativeAI(
+        model="models/gemini-2.5-pro",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.3
+    ),
     respect_context_window=True,
     code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
 )
 
-# Import task here to avoid circular imports
-from tasks.student_level_analytics_task import generate_student_analytics_task
-
-# Dynamically assign the agent and tool to the task
-generate_student_analytics_task.agent = student_level_analytics_agent
-generate_student_analytics_task.tool = student_level_analytics_tool
+# Optional: dynamically assign the agent and tool to the task
+student_analytics_task.agent = student_level_analytics_agent
+student_analytics_task.tool = student_level_analytics_tool

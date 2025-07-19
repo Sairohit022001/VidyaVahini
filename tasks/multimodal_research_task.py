@@ -1,39 +1,29 @@
-from tasks import Task
+from tasks.base import BaseTask  # assuming this is your base class
 from pydantic import BaseModel, Field
 from typing import List
 
-# Define structured schema for multimodal references output
 class MultimodalReferencesOutput(BaseModel):
-    research_papers: List[str] = Field(..., description="List of relevant research paper URLs or citations")
-    video_links: List[str] = Field(..., description="List of curated educational video URLs")
-    trusted_websites: List[str] = Field(..., description="List of credible websites with relevant content")
+    research_papers: List[str]
+    video_links: List[str]
+    trusted_websites: List[str]
 
-generate_multimodal_references_task = Task(
-    name="GenerateMultimodalReferences",
-    description=(
-        "Given a topic or chapter and a grade level, retrieve curated multimodal references.\n"
-        "Include academic research papers, educational videos, and trusted websites.\n"
-        "Ensure recommendations are grade-appropriate and credible.\n"
-        "Support for grades 1-10, 11-12, and undergraduate levels."
-    ),
-    inputs=["topic", "grade"],
-    expected_output=MultimodalReferencesOutput,
-    output_json=True,
-    verbose=True,
-    tool="multimodal_research_tool",
-    guardrails={
-        "retry_on_fail": 2,
-        "fallback_response": {
-            "research_papers": [],
-            "video_links": [],
-            "trusted_websites": []
+class MultimodalResearchTask(BaseTask):
+    name = "GenerateMultimodalReferences"
+    description = (
+        "Given a topic and grade, return multimodal references such as research papers, videos, and trusted websites."
+    )
+    inputs = ["topic", "grade"]
+    output_model = MultimodalReferencesOutput
+    output_json = True
+
+    async def run(self, input_data):
+        topic = input_data["topic"]
+        grade = input_data["grade"]
+
+        # Replace with real multimodal reference logic
+        result = {
+            "research_papers": [f"https://scholar.google.com/{topic}"],
+            "video_links": [f"https://youtube.com/results?search_query={topic}+class+{grade}"],
+            "trusted_websites": [f"https://www.khanacademy.org/search?page_search_query={topic}"]
         }
-    },
-    metadata={
-        "agent": "MultimodalResearchAgent",
-        "access": "teacher_only",
-        "downstream": ["LessonPlannerAgent", "ContentCreatorAgent"],
-        "audience": "Grades 1-10, 11-12, UG",
-        "output_type": "references"
-    }
-)
+        return result

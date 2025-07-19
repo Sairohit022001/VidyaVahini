@@ -1,7 +1,9 @@
 from crewflows import Agent
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tools.multimodal_research_tool import MultimodalResearchTool
-from tasks.multimodal_research_task import generate_multimodal_references_task
+from tasks.multimodal_research_task import MultimodalResearchTask
+from langchain_google_genai import ChatGoogleGenerativeAI
+
 
 # Initialize memory handler
 memory_handler = LocalMemoryHandler(
@@ -44,13 +46,17 @@ By integrating seamlessly with other agents, it supports a holistic educational 
             allow_delegation=True,
             verbose=True,
             tools=[multimodal_research_tool],
-            tasks=[generate_multimodal_references_task],
+            tasks=[MultimodalResearchTask(name=MultimodalResearchTask.name, description=MultimodalResearchTask.description)],
             user_type="teacher",
             metadata={
                 "resource_types": "papers, videos, websites",
                 "grade_levels": "1-10, 11-12, UG"
             },
-            llm_config={"model": "gemini-pro", "temperature": 0.5},
+            llm=ChatGoogleGenerativeAI(
+            model="models/gemini-2.5-pro",
+            google_api_key=os.getenv("GEMINI_API_KEY"),
+            temperature=0.3
+            ),
             respect_context_window=True,
             code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
         )
@@ -60,24 +66,25 @@ By integrating seamlessly with other agents, it supports a holistic educational 
         Process inputs asynchronously to generate multimodal research references.
 
         Args:
-            inputs (dict): Should include 'topic', 'level', and optional 'context_from_doc'.
+            inputs (dict): Should include 'topic', 'grade', and optional 'context_from_doc'.
 
         Returns:
             dict: Research resources including papers, videos, and trusted websites.
         """
         try:
             topic = inputs.get("topic")
-            level = inputs.get("level")
+            grade = inputs.get("grade")
             context_from_doc = inputs.get("context_from_doc", {})
 
             context = {
                 "topic": topic,
-                "level": level,
+                "grade": grade,
                 "context_from_doc": context_from_doc
             }
 
             # Run the research task asynchronously
-            result = await generate_multimodal_references_task.run(context)
+            multimodal_task_instance = MultimodalResearchTask(name=MultimodalResearchTask.name, description=MultimodalResearchTask.description)
+            result = await multimodal_task_instance.run(context)
             return result
 
         except Exception as e:
@@ -88,7 +95,7 @@ multimodal_research_agent = MultimodalResearchAgent()
 
 # Declare inputs
 multimodal_research_agent.add_input("topic")
-multimodal_research_agent.add_input("level")
+multimodal_research_agent.add_input("grade")
 multimodal_research_agent.add_input("context_from_doc")
 
 # Declare outputs

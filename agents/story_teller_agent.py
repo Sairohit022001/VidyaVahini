@@ -1,7 +1,10 @@
 from crewflows import Agent
 from tools.story_generation_tool import StoryGenerationTool
-from tasks.story_teller_tasks import generate_story_task
+from tasks.story_teller_tasks import StoryTellerTask # Import the class
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
+# Assuming Task is crewai.Task, you might need to import it if used for type checking
+# from crewai import Task
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Memory handler for story teller agent
 memory_handler = LocalMemoryHandler(
@@ -14,13 +17,21 @@ story_tool = StoryGenerationTool()
 
 class StoryTellerAgent(Agent):
     def __init__(self, *args, **kwargs):
+        # Remove the task from the tasks list in super().__init__
+        if 'tasks' in kwargs and isinstance(kwargs['tasks'], list):
+            # Assuming Task is crewai.Task, adjust condition if needed
+            kwargs['tasks'] = [task for task in kwargs['tasks'] if not (hasattr(task, '__class__') and task.__class__.__name__ == 'Task')]
         super().__init__(*args, **kwargs)
+
+        # Store the task instance in a dedicated instance variable
+        self.story_teller_task_instance = StoryTellerTask(name=StoryTellerTask.name, description=StoryTellerTask.description)
+
 
     async def process(self, inputs: dict):
         lesson_plan = inputs.get("lesson_plan_json")
         topic = inputs.get("topic")
         level = inputs.get("level")
-        dialect = inputs.get("dialect")
+        dialect = inputs.get("dialect", "default")
 
         # Input validation to avoid empty calls
         if not lesson_plan:
@@ -36,7 +47,8 @@ class StoryTellerAgent(Agent):
         }
 
         try:
-            result = await generate_story_task.run(context)
+            # Access the task instance from the instance variable and run it
+            result = await self.story_teller_task_instance.run(context)
             return result
         except Exception as e:
             return {"error": f"StoryTellerAgent process() failed: {str(e)}"}
@@ -45,7 +57,7 @@ class StoryTellerAgent(Agent):
 story_teller_agent = StoryTellerAgent(
     id="story-teller-agent",
     name="StoryTellerAgent",
-    role="AI assistant for generating contextual, cultural stories for teachers",
+    role="""AI assistant for generating contextual, cultural stories for teachers""",
     goal="""
 1. Convert educational topics into engaging, age-appropriate narratives.
 2. Ensure storytelling is culturally contextualized and dialect-sensitive.
@@ -71,12 +83,16 @@ story_teller_agent = StoryTellerAgent(
 10. Its ultimate goal is to empower teachers with engaging narrative tools, not replace them.
 """,
     tools=[story_tool],
-    tasks=[generate_story_task],
+    tasks=[], # Removed the task from the tasks list
     memory=True,
     memory_handler=memory_handler,
     allow_delegation=True,
     verbose=True,
-    llm_config={"model": "gemini-pro", "temperature": 0.7, "max_tokens": 2048},
+    llm=ChatGoogleGenerativeAI(
+        model="models/gemini-2.5-pro",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.3
+    ),
     respect_context_window=True,
     code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
     user_type="teacher",
@@ -88,14 +104,17 @@ story_teller_agent = StoryTellerAgent(
 )
 
 # Declare inputs and outputs
-story_teller_agent.add_input("LessonPlannerAgent")
+story_teller_agent.add_input("lesson_plan_json")
+story_teller_agent.add_input("topic")
+story_teller_agent.add_input("level")
+story_teller_agent.add_input("dialect")
+
 story_teller_agent.add_output("story_title")
 story_teller_agent.add_output("story_body")
 story_teller_agent.add_output("moral")
 story_teller_agent.add_output("visual_prompts")
 story_teller_agent.add_output("localized_dialect_story")
 story_teller_agent.add_output("audio_narration")
-
 
 import types
 def sync_process(self, inputs: dict):

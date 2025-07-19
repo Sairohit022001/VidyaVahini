@@ -15,7 +15,7 @@ memory_handler = LocalMemoryHandler(
 )
 # Define the LLM
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-pro-latest",
+    model="models/gemini-2.5-pro",
     google_api_key=google_api_key,
     temperature=0.3
 )
@@ -90,7 +90,11 @@ Your mission is to uplift classrooms by turning teacher ideas into structured ed
     verbose=True,
     tools=[LessonGenerationTool()],
     tasks=[generate_lesson_task],
-    llm_config={"model": "gemini-pro", "temperature": 0.6},
+    llm=ChatGoogleGenerativeAI(
+        model="models/gemini-2.5-pro",
+        google_api_key=google_api_key,
+        temperature=0.3
+    ),
     respect_context_window=True,
     code_execution_config={
         "enabled": True,
@@ -126,7 +130,6 @@ Your mission is to uplift classrooms by turning teacher ideas into structured ed
     }
 )
 
-
 # Declare accepted inputs
 lesson_planner_agent.add_input("topic")
 lesson_planner_agent.add_input("level")
@@ -154,4 +157,3 @@ def sync_process(self, inputs: dict):
 
 # Attach sync_process as well for flexibility
 lesson_planner_agent.sync_process = types.MethodType(sync_process, lesson_planner_agent)
-

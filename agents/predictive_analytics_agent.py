@@ -1,77 +1,101 @@
 from crewflows import Agent
-from crewflows.memory.local_memory_handler import LocalMemoryHandler 
-from tools.predictive_analytics_tool import predictive_analytics_tool
-from tasks.predictive_analytics_task import generate_class_analytics_task 
+from crewflows.memory.local_memory_handler import LocalMemoryHandler
+from tools.predictive_analytics_tool import PredictiveAnalyticsTool
+from tasks.predictive_analytics_task import PredictiveAnalyticsTask
+from langchain_google_genai import ChatGoogleGenerativeAI
 
+
+# Initialize memory handler
 memory_handler = LocalMemoryHandler(
     session_id="predictive_analytics_session",
     file_path="memory/predictive_analytics_memory.json"
 )
+
+# Instantiate the tool
+predictive_analytics_tool = PredictiveAnalyticsTool()
 
 class PredictiveAnalyticsAgent(Agent):
     def __init__(self):
         super().__init__(
             name="PredictiveAnalyticsAgent",
             role="""
-1. Analyze class-wide quiz data for actionable insights.
-2. Identify top-performing students and struggling learners.
-3. Detect common weak concepts across the class.
-4. Track learning trends and engagement patterns over time.
-5. Provide recommendations for lesson revisions and pacing.
-6. Generate structured JSON reports for dashboards.
-7. Integrate seamlessly with TeacherDashboardAgent.
-8. Support offline sync and data caching via SyncAgent.
-9. Help teachers make data-driven instructional decisions.
-10. Enhance overall classroom learning effectiveness.
+1. Analyze student performance data to identify trends and predict learning outcomes.
+2. Provide insights on class-level strengths and weaknesses.
+3. Suggest personalized learning paths or interventions for individual students.
+4. Help teachers identify students who may need additional support.
+5. Offer data-driven recommendations for adjusting lesson plans.
+6. Integrate with other agents to inform content creation and gamification strategies.
+7. Ensure data privacy and security compliance.
+8. Generate reports and visualizations of student progress.
+9. Support early identification of learning difficulties.
+10. Contribute to a data-informed educational approach.
 """,
             goal="""
-Given aggregated quiz data, generate actionable class-level analytics and detailed reports for teachers to improve instructional outcomes.
+Provide actionable insights from student performance data to improve learning outcomes and inform teaching strategies.
 """,
             backstory="""
-1. Built to reduce teacher workload on performance analysis.
-2. Aggregates individual quiz results for holistic class view.
-3. Highlights trends not visible at single-student level.
-4. Assists in planning focused group interventions.
-5. Works closely with dashboard and content planning agents.
-6. Designed for resource-constrained rural and urban classrooms.
-7. Supports low-connectivity environments through caching.
-8. Provides transparent, interpretable reports for teachers.
-9. Encourages proactive teaching adjustments.
-10. Empowers teachers with timely data insights for better outcomes.
+PredictiveAnalyticsAgent serves as the data scientist for VidyaVāhinī. 
+It crunches numbers from quizzes, assignments, and interactions to understand student learning patterns. 
+By identifying potential challenges early on, it enables timely support and personalized learning adjustments. 
+It works diligently to provide clear, understandable data visualizations and reports for teachers. 
+Its mission is to use the power of data to ensure every student has the opportunity to succeed.
 """,
             memory=True,
             memory_handler=memory_handler,
-            allow_delegation=False,
+            allow_delegation=True,
             verbose=True,
             tools=[predictive_analytics_tool],
-            tasks=[generate_class_analytics_task],
+            tasks=[PredictiveAnalyticsTask(name=PredictiveAnalyticsTask.name, description=PredictiveAnalyticsTask.description)],
             user_type="teacher",
             metadata={
-                "analysis_type": "class_level",
-                "output_format": "JSON"
+                "data_sources": "quiz results, assignments",
+                "analysis_level": "class, individual"
             },
-            llm_config={"model": "gemini-pro", "temperature": 0.5},
+            llm=ChatGoogleGenerativeAI(
+            model="models/gemini-2.5-pro",
+            google_api_key=os.getenv("GEMINI_API_KEY"),
+            temperature=0.3
+            ),
             respect_context_window=True,
             code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
         )
 
     async def process(self, inputs: dict):
         """
-        Process aggregated quiz data asynchronously to generate class-level analytics.
+        Process inputs asynchronously to generate predictive analytics.
 
         Args:
-            inputs (dict): Inputs from QuizAgent or other relevant data sources.
+            inputs (dict): Should include 'quiz_results' and optional 'context_from_doc'.
 
         Returns:
-            dict: Structured JSON report with class performance insights.
+            dict: Predictive analytics insights including average score, top performers, weak areas, and suggestions.
         """
         try:
-            result = await generate_class_analytics_task.run(inputs)
+            quiz_results = inputs.get("quiz_results", [])
+            context_from_doc = inputs.get("context_from_doc", {})
+
+            context = {
+                "quiz_results": quiz_results,
+                "context_from_doc": context_from_doc
+            }
+
+            # Run the predictive analytics task asynchronously
+            predictive_task_instance = PredictiveAnalyticsTask(name=PredictiveAnalyticsTask.name, description=PredictiveAnalyticsTask.description)
+            result = await predictive_task_instance.run(context)
             return result
+
         except Exception as e:
             return {"error": f"PredictiveAnalyticsAgent process() failed: {str(e)}"}
 
+# Instantiate agent without params
 predictive_analytics_agent = PredictiveAnalyticsAgent()
 
-# Declare accepted inputs
-predictive_analytics_agent.add_input("QuizAgent")
+# Declare inputs
+predictive_analytics_agent.add_input("quiz_results")
+predictive_analytics_agent.add_input("context_from_doc")
+
+# Declare outputs
+predictive_analytics_agent.add_output("average_score")
+predictive_analytics_agent.add_output("top_performers")
+predictive_analytics_agent.add_output("weak_areas")
+predictive_analytics_agent.add_output("lesson_plan_suggestions")
