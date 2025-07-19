@@ -1,6 +1,6 @@
 from typing import List, Optional, Any, Dict
 
-class Task:
+class BaseTask:
     def __init__(
         self,
         name: str,

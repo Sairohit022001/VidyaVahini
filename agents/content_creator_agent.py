@@ -2,6 +2,7 @@ from crewflows import Agent
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tasks.content_creation_tasks import generate_content_task
 from tools.content_creation_tool import ContentCreationTool
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Initialize memory handler
 memory_handler = LocalMemoryHandler(
@@ -55,7 +56,11 @@ Help teachers assemble, validate, and publish high-quality multimodal educationa
                 "subject_areas": "All subjects",
                 "language_support": "Regional dialects supported"
             },
-            llm_config={"model": "gemini-pro", "temperature": 0.6},
+            llm=ChatGoogleGenerativeAI(
+            model="models/gemini-2.5-pro",
+            google_api_key=os.getenv("GEMINI_API_KEY"),
+            temperature=0.3
+            ),
             respect_context_window=True,
             code_execution_config={
                 "enabled": True,

@@ -1,6 +1,7 @@
 from tasks import Task
 from pydantic import BaseModel, Field
 from typing import List
+import datetime
 
 class SyncStatusSchema(BaseModel):
     firestore_status: str = Field(..., description="Status of Firestore sync: Synced / Error / Offline")
@@ -8,7 +9,9 @@ class SyncStatusSchema(BaseModel):
     last_sync_timestamp: str = Field(..., description="Timestamp of last sync completion")
     offline_students: List[str] = Field(default=[], description="List of students still offline")
 
-run_sync_task = Task(
+
+# The Task configuration object
+sync_task_config = Task(
     name="Sync Firestore with IndexedDB",
     description=(
         "Trigger Firestore ↔ IndexedDB sync operation.\n"
@@ -43,3 +46,22 @@ run_sync_task = Task(
         "triggers": ["on_dashboard_load", "on_app_start"]
     }
 )
+
+# ✅ Wrap it inside a class that supports .run()
+class SyncTask:
+    async def run(self, input_data: dict) -> dict:
+        try:
+            # Simulate actual sync processing — replace this with real logic
+            return {
+                "firestore_status": "Synced",
+                "indexeddb_status": "Synced",
+                "last_sync_timestamp": datetime.datetime.now().isoformat(),
+                "offline_students": input_data.get("offline_students", [])
+            }
+        except Exception as e:
+            return {
+                "firestore_status": "Error",
+                "indexeddb_status": "Stale",
+                "last_sync_timestamp": "unknown",
+                "offline_students": []
+            }

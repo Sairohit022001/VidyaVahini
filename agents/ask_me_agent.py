@@ -2,6 +2,7 @@ from crewflows import Agent
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tasks.ask_me_task import ask_question_task
 from tools.ask_me_tool import AskMeTool
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Memory handler setup for session persistence
 memory_handler = LocalMemoryHandler(
@@ -73,12 +74,11 @@ ask_me_agent = AskMeAgent(
         "voice_narration": True,
         "integration_ready": ["BhāṣāGuru", "CoursePlannerAgent"]
     },
-    llm_config={
-        "model": "gemini-pro",
-        "temperature": 0.6,
-        "top_p": 1.0,
-        "max_tokens": 2048
-    },
+    llm=ChatGoogleGenerativeAI(
+        model="models/gemini-2.5-pro",
+        google_api_key= os.getenv("GEMINI_API_KEY"),
+        temperature=0.3
+    ),
     respect_context_window=True,
     code_execution_config={
         "enabled": True,

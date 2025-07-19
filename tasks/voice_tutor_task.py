@@ -5,7 +5,7 @@ class VoiceTutorTask:
     def __init__(self):
         self.tool = VoiceTutorTool()
 
-    def run(self, input_text: str, dialect: str = "default") -> Dict[str, str]:
+    async def run(self, input_text: str, dialect: str = "default") -> Dict[str, str]:
         """
         Generate SSML and audio file for given text and dialect using the VoiceTutorTool.
 
@@ -23,6 +23,7 @@ class VoiceTutorTask:
             RuntimeError: If voice generation fails.
         """
         try:
+            # Assuming generate_voice_tutor is synchronous, no await here
             result = self.tool.generate_voice_tutor(input_text, dialect)
             return result
         except Exception as e:

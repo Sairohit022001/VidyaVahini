@@ -1,29 +1,20 @@
-from tasks import Task
+from tasks.base import BaseTask
 from pydantic import BaseModel, Field
 from typing import List
 
 class ClassAnalyticsOutputSchema(BaseModel):
-    average_score: float = Field(..., description="Average score of the class across the quiz")
-    top_performers: List[str] = Field(..., description="List of top-performing student IDs or names")
-    weak_areas: List[str] = Field(..., description="List of commonly misunderstood topics or concepts")
-    lesson_plan_suggestions: List[str] = Field(
-        ..., description="Chapters or concepts to re-emphasize in future lessons"
-    )
+    average_score: float
+    top_performers: List[str]
+    weak_areas: List[str]
+    lesson_plan_suggestions: List[str]
 
-generate_class_analytics_task = Task(
-    name="GenerateClassAnalytics",
-    description=(
-        "Analyze overall class quiz results to extract aggregate performance indicators such as average score, "
-        "top performers, and weak areas. Generate actionable lesson planning suggestions for teachers. "
-        "Focus only on class-level trends without diving into individual student analytics."
-    ),
-    inputs=["quiz_results"],
-    expected_output=ClassAnalyticsOutputSchema,
-    output_json=True,
-    context_injection=True,
-    verbose=True,
-    output_file="outputs/class_analytics_{timestamp}.json",
-    guardrails={
+class PredictiveAnalyticsTask(BaseTask):
+    name = "GenerateClassAnalytics"
+    description = "Analyze class-level quiz performance and suggest lesson improvements."
+    inputs = ["quiz_results"]
+    output_model = ClassAnalyticsOutputSchema
+    output_json = True
+    guardrails = { # Ensure guardrails with fallback_response are defined
         "retry_on_fail": 1,
         "fallback_response": {
             "average_score": 0.0,
@@ -31,12 +22,29 @@ generate_class_analytics_task = Task(
             "weak_areas": [],
             "lesson_plan_suggestions": []
         }
-    },
-    metadata={
-        "agent": "PredictiveAnalyticsAgent",
-        "access": "teacher_only",
-        "downstream": ["LessonPlannerAgent", "TeacherDashboardAgent"],
-        "triggers": ["on_quiz_completion", "periodic_review"]
-    },
-    tool="predictive_analytics_tool"
-)
+    }
+
+    async def run(self, input_data):
+        quiz_results = input_data.get("quiz_results", [])
+
+        # Check if quiz_results is not empty before calculating average_score
+        if not quiz_results:
+            # Return the fallback response directly when no quiz data
+            return self.guardrails.get("fallback_response", {
+                "average_score": 0.0,
+                "top_performers": [],
+                "weak_areas": [],
+                "lesson_plan_suggestions": []
+            })
+        else:
+            average_score = sum(q["score"] for q in quiz_results) / len(quiz_results)
+            top_performers = sorted(quiz_results, key=lambda x: -x["score"])[:3]
+            weak_areas = ["Fractions", "Algebra"]  # Just placeholders
+            suggestions = ["Revise Algebra basics", "More group practice on Fractions"]
+
+            return {
+                "average_score": average_score,
+                "top_performers": [s["student_id"] for s in top_performers],
+                "weak_areas": weak_areas,
+                "lesson_plan_suggestions": suggestions
+            }

@@ -2,6 +2,10 @@ from crewflows import Agent
 from crewflows.memory.local_memory_handler import LocalMemoryHandler 
 from tools.course_planner_tool import CoursePlannerTool
 from tasks.course_planner_tasks import generate_course_plan_task
+import types
+import inspect
+import asyncio
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Initialize memory handler for the agent
 memory_handler = LocalMemoryHandler(
@@ -43,7 +47,11 @@ It outputs a clear JSON for integration into dashboards or printed sheets.
         "subject_areas": "All subjects",
         "language_support": "Regional dialects supported"
     },
-    llm_config={"model": "gemini-pro", "temperature": 0.6},
+    llm=ChatGoogleGenerativeAI(
+        model="models/gemini-2.5-pro",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.3
+    ),
     respect_context_window=True,
     code_execution_config={
         "enabled": True,
@@ -72,27 +80,29 @@ course_planner_agent.add_output("CurriculumProgressionReport")
 course_planner_agent.add_output("PacingGuide")
 course_planner_agent.add_output("LogicalTopicFlow")
 
-
-# Fix for 'Agent' object has no attribute 'process'
-def process(self, input_data):
+# Updated async process method
+async def process(self, input_data):
     """
     Runs all assigned tasks sequentially or as per framework logic,
     passing input_data and returning aggregated result.
     """
     results = {}
     for task in getattr(self, "tasks", []):
-        # Ensure task is callable and has run method
         if hasattr(task, "run") and callable(task.run):
-            result = task.run(input_data)
+            if inspect.iscoroutinefunction(task.run):
+                result = await task.run(input_data)
+            else:
+                result = task.run(input_data)
             results[task.__class__.__name__] = result
         elif callable(task):
-            result = task(input_data)
+            if inspect.iscoroutinefunction(task):
+                result = await task(input_data)
+            else:
+                result = task(input_data)
             results[task.__class__.__name__] = result
         else:
             raise AttributeError(f"Task {task} has no runnable method.")
     return results
 
-# Bind process method to the agent instance
-import types
+# Bind updated async process method to the agent instance
 course_planner_agent.process = types.MethodType(process, course_planner_agent)
-

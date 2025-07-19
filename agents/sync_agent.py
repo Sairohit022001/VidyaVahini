@@ -1,7 +1,8 @@
 from crewflows import Agent
 from tools.sync_tool import SyncTool
-from tasks.sync_tasks import run_sync_task
+from tasks.sync_tasks import SyncTask
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 memory_handler = LocalMemoryHandler(
     session_id="sync_agent_session",
@@ -13,20 +14,12 @@ class SyncAgentWrapper(Agent):
         super().__init__(*args, **kwargs)
 
     async def process(self, inputs: dict):
-        """
-        Asynchronously handle synchronization inputs and perform offline/online sync operations.
-
-        Args:
-            inputs (dict): Contains offline lesson updates and student interaction data.
-
-        Returns:
-            dict: Sync status, pending offline updates, and current IndexedDB snapshot.
-        """
         try:
-            result = await run_sync_task.run(inputs)
+            result = await SyncTask().run(inputs)
             return result
         except Exception as e:
             return {"error": f"SyncAgent process() failed: {str(e)}"}
+
 
 sync_agent = SyncAgentWrapper(
     name="SyncAgent",
@@ -67,12 +60,16 @@ sync_agent = SyncAgentWrapper(
 10. A cornerstone agent for offline-first architecture of VidyaVāhinī.
 """,
     tools=[SyncTool],
-    tasks=[run_sync_task],
+    tasks=[SyncTask()],
     memory=True,
     memory_handler=memory_handler,
     allow_delegation=True,
     verbose=True,
-    llm_config={"model": "gemini-pro", "temperature": 0.7, "max_tokens": 2048},
+    llm=ChatGoogleGenerativeAI(
+        model="models/gemini-2.5-pro",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.3
+    ),
     respect_context_window=True,
     code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
     user_type="teacher",
@@ -83,11 +80,9 @@ sync_agent = SyncAgentWrapper(
     }
 )
 
-# Declare accepted inputs
+# Inputs / Outputs
 sync_agent.add_input("OfflineLessonUpdates")
 sync_agent.add_input("StudentInteractionData")
-
-# Declare expected outputs
 sync_agent.add_output("FirestoreSyncStatus")
 sync_agent.add_output("OfflineUpdatesPending")
 sync_agent.add_output("IndexedDBData")

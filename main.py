@@ -1,6 +1,9 @@
 from dotenv import load_dotenv
 load_dotenv()
 import os
+from dotenv import load_dotenv
+load_dotenv()  # This loads variables from .env into environment
+
 import sys
 import signal
 import time
@@ -10,11 +13,13 @@ from fastapi import FastAPI, Request, HTTPException, Depends, status, APIRouter
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, Field, validator
-from typing import Optional, Dict
+from pydantic import BaseModel, Field, validator, field_validator # Import field_validator
+from typing import Optional, Dict, AsyncIterator # Import AsyncIterator
 from functools import wraps
 import structlog
 import traceback
+from contextlib import asynccontextmanager # Import asynccontextmanager
+
  
 from agents.lesson_planner_agent import lesson_planner_agent
 from agents.story_teller_agent import story_teller_agent
@@ -35,7 +40,7 @@ from crewflows import Crew
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from llms.llm_config import custom_llm_config
 
-import os
+
 
 credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
@@ -45,11 +50,6 @@ else:
     raise EnvironmentError("GOOGLE_APPLICATION_CREDENTIALS is not set in environment variables")
 
 
-import os
-from dotenv import load_dotenv
-
-load_dotenv()  # This loads variables from .env into environment
-
 google_api_key = os.getenv("GOOGLE_API_KEY")
 
 if not google_api_key:
@@ -58,13 +58,26 @@ if not google_api_key:
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-llm = ChatGoogleGenerativeAI(google_api_key=google_api_key, model="models/gemini-pro")
+llm = ChatGoogleGenerativeAI(google_api_key=google_api_key, model="models/gemini-2.5-pro") # Remove convert_system_message_to_human
+
+# FastAPI Lifespan events
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    logger.info("FastAPI lifespan startup event triggered. Initializing resources...")
+    # Add any startup code here
+    yield
+    # Shutdown logic
+    logger.info("FastAPI lifespan shutdown event triggered. Cleaning up resources...")
+    # Add any shutdown code here
+    await asyncio.sleep(0.1)
 
 # Initialize FastAPI app once here
 app = FastAPI(
     title="VIDYAVAHINI",
     description="Empowering teachers in multi-grade classrooms",
     version="1.0.0",
+    lifespan=lifespan # Pass the decorated lifespan function here
 )
 
 # CORS middleware
@@ -135,7 +148,7 @@ vidyavahini_crew = Crew(
         voice_tutor_agent,
         student_level_analytics_agent,
         content_creator_agent,
-        gamification_agent,
+        # gamification_agent, # Comment out GamificationAgent here
         multimodal_research_agent,
         predictive_analytics_agent,
         visual_agent,
@@ -160,7 +173,9 @@ class CrewRequest(BaseModel):
     prompt: str = Field(..., max_length=MAX_PROMPT_LENGTH, description="User prompt for AI Crew")
     context: Optional[Dict] = Field(default_factory=dict)
 
-    @validator("prompt")
+    # Use field_validator for Pydantic V2
+    @field_validator("prompt")
+    @classmethod
     def no_empty_prompt(cls, v):
         if not v.strip():
             raise ValueError("Prompt cannot be empty or whitespace")
@@ -237,7 +252,7 @@ agent_endpoints = {
     "voice_tutor": voice_tutor_agent,
     "student_level_analytics": student_level_analytics_agent,
     "content_creator": content_creator_agent,
-    "gamification": gamification_agent,
+    # "gamification": gamification_agent, # Comment out GamificationAgent here as well for consistency
     "multimodal_research": multimodal_research_agent,
     "predictive_analytics": predictive_analytics_agent,
     "visual": visual_agent,
@@ -246,25 +261,24 @@ agent_endpoints = {
 api_router = APIRouter()
 
 # Dynamically add one endpoint per agent
-for endpoint_name, agent in agent_endpoints.items():
-
-    async def endpoint_func(request: Request, crew_request: CrewRequest, _agent=agent):
-        """
-        Run single agent: {_agent.name}
-        """
+def create_agent_endpoint(agent, endpoint_name):
+    @rate_limit_endpoint
+    async def endpoint_func(request: Request, crew_request: CrewRequest):
         client_ip = get_client_ip(request)
         logger.info(f"Received /api/{endpoint_name} request", client_ip=client_ip, prompt=crew_request.prompt[:50])
-        result = await run_single_agent(_agent, crew_request.prompt, crew_request.context)
-        logger.info(f"Agent {_agent.name} run completed successfully", client_ip=client_ip)
+        result = await run_single_agent(agent, crew_request.prompt, crew_request.context)
+        logger.info(f"Agent {agent.name} run completed successfully", client_ip=client_ip)
         return CrewResponse(result=result)
+    return endpoint_func
 
+for endpoint_name, agent in agent_endpoints.items():
     api_router.post(
         f"/api/{endpoint_name}",
         response_model=CrewResponse,
         dependencies=[Depends(verify_api_key)],
         tags=["Agents"],
         summary=f"Run {agent.name} agent"
-    )(rate_limit_endpoint(endpoint_func))
+    )(create_agent_endpoint(agent, endpoint_name))
 
 app.include_router(api_router)
 
@@ -296,28 +310,67 @@ async def general_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal server error"},
     )
 
-# Graceful shutdown
+# Graceful shutdown (keep signal handlers for external signals)
 shutdown_event = asyncio.Event()
 
 def handle_shutdown(signum, frame):
-    logger.info(f"Shutdown signal received: {signum}. Cleaning up...")
+    global shutdown_event # Declare shutdown_event as global
+    logger.info(f"Shutdown signal received: {signum}. Triggering FastAPI shutdown...")
     shutdown_event.set()
+    # You might want to trigger FastAPI's shutdown programmatically here
+    # depending on your uvicorn setup. Sending a signal might be enough.
 
 signal.signal(signal.SIGINT, handle_shutdown)
 signal.signal(signal.SIGTERM, handle_shutdown)
-
-@app.on_event("shutdown")
-async def on_shutdown():
-    logger.info("FastAPI shutdown event triggered. Cleaning up resources.")
-    await asyncio.sleep(0.1)
 
 # CLI runner for manual testing
 async def main():
     test_prompt = "Prepare a summary lesson plan on photosynthesis for Grade 7."
     logger.info("Starting VidyaVāhinī Crew CLI run...")
     try:
-        result = await vidyavahini_crew.run(inputs={"prompt": "what is photosynthesis", "dialect":  "Telangana" })
-        logger.info(f"CLI run result:\n{result}")
+        # Example of providing more complete inputs for a lesson planning scenario
+        inputs = {
+            "topic": "Photosynthesis",
+            "level": "7", # Use "level" instead of "grade" for consistency with LessonPlannerAgent
+            "dialect": "Telangana",
+            "prompt": "Explain photosynthesis for grade 7 students in Telangana dialect.", # Add prompt here
+            # Add other potential inputs needed by agents in the crew
+            # based on their add_input declarations and task requirements
+            # Example for StoryTellerAgent (requires lesson_plan_json):
+            "lesson_plan_json": {
+                "title": "The Magical Process of Photosynthesis",
+                "sections": [
+                    {"heading": "Introduction", "content": "Brief intro to photosynthesis."},
+                    {"heading": "What is Needed?", "content": "Sunlight, water, CO2."},
+                    {"heading": "The Process", "content": "How plants make food."},
+                    {"heading": "Importance", "content": "Why photosynthesis is important."}
+                ]
+            },
+            # Example for QuizAgent (requires lesson_plan_json, story_body, or audio_data):
+            "story_body": "A short story about a plant making food.",
+            # Example for TeacherDashboardAgent (requires quiz_data, student_levels, predictive_data):
+            "quiz_data": {"total_students": 10, "completed_quizzes": 8, "results": []}, # Example structure, provide empty list
+            "student_levels": {}, # Example structure, provide empty dict
+            "predictive_data": {}, # Example structure, provide empty dict
+            # Example for StudentLevelAnalyticsAgent (requires student_id, quiz_results, interaction_data):
+            "student_id": "student123",
+            "quiz_results": [], # Example structure, provide empty list
+            "interaction_data": {}, # Example structure, provide empty dict
+            # Example for ContentCreatorAgent (requires lesson_plan_json, story_body, visual_prompts):
+            "visual_prompts": [], # Example structure, provide empty list
+            # Example for MultimodalResearchAgent (requires topic, grade, context_from_doc):
+            # topic, grade, dialect are already included above
+            "context_from_doc": {}, # Example structure, provide empty dict
+            # Example for PredictiveAnalyticsAgent (requires quiz_results):
+            # quiz_results is already included above
+            # Example for VisualAgent (requires lesson_plan_json, story_text, dialect):
+            "story_text": "A story related to photosynthesis."
+
+        }
+
+        result = await vidyavahini_crew.run(inputs=inputs)
+        logger.info("CLI run result:") # Close the string here
+        logger.info(f"{result}") # Print the result on a new line
     except Exception as e:
         logger.error(f"Error running crew in CLI: {e}")
 

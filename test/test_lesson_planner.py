@@ -10,6 +10,7 @@ def test_lesson_generation():
     tool = LessonGenerationTool()
     inputs = {
         "topic": "Photosynthesis",
+        "Grade": "7",
         "level": "Medium",
         "dialect": "Telangana Telugu"
     }

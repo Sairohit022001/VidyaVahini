@@ -18,17 +18,8 @@ Grade Level: {level}
 Dialect: {dialect}
 
 Respond ONLY in valid JSON format.
-"""
-}
+""",
 
-def get_prompt_template(name: str) -> str:
-    return PROMPT_TEMPLATES.get(name, "")
-
-
-
-
-
-PROMPT_TEMPLATES = {
     "story_generation": """
 You are a cultural storytelling AI for Indian classrooms.
 
@@ -45,16 +36,11 @@ Dialect: {dialect}
 
 Ensure age-appropriateness, contextual relevance, and storytelling flavor.
 Respond ONLY in JSON.
-"""
-}
+""",
 
-
-
-
-PROMPT_TEMPLATES = {
-        "quiz_generation": """ 
+    "quiz_generation": """
 You are an educational quiz generation assistant.
-Create a JSON with:\n" 
+Create a JSON with:
 - topic
 - level (Easy/Medium/Hard)
 - grade
@@ -69,16 +55,8 @@ Level: {level}
 Grade: {grade}
 
 Return ONLY JSON. Ensure age-appropriate clarity and curriculum alignment.
-"""
-}
+""",
 
-
-
-
-
-
-
-PROMPT_TEMPLATES = {
     "visual_generation": """
 You are an AI visual assistant for Indian education.
 
@@ -95,13 +73,9 @@ Dialect: {dialect}
 
 Use culturally familiar metaphors and scene composition.
 Respond ONLY in valid JSON.
-"""
-}
+""",
 
-
-
-PROMPT_TEMPLATES = {
-"content_creation": """
+    "content_creation": """
 You're an AI assistant helping teachers combine their handwritten or typed notes with AI-generated content.
 
 Generate a JSON with:
@@ -121,13 +95,23 @@ Return ONLY JSON.
 """
 }
 
-
+def get_prompt_template(name: str) -> str:
+    """
+    Returns the prompt template string for the given prompt name
+    from the PROMPT_TEMPLATES dictionary.
+    """
+    return PROMPT_TEMPLATES.get(name, "")
 
 def load_prompt(name: str) -> str:
-    path = f"tools/prompts/{name}"
-    with open(path, "r", encoding="utf-8") as f:
-        return f.read()
-        question = inputs.get("question", "What is transpiration?")
-        context = inputs.get("context", "Plants lose water through small pores called stomata.")
-        prompt = self.prompt_template.format(question=question, context=context)
-        result = self.llm.invoke(prompt)
+    """
+    Reads a prompt template from a text file located in 'prompt_templates/' folder.
+
+    This is used if you prefer storing prompts in files rather than in the dictionary.
+    """
+    path = f"prompt_templates/{name}.txt"
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        # Fallback to in-memory prompt template if file not found
+        return get_prompt_template(name)

@@ -2,6 +2,7 @@ from crewflows import Agent
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tools.dashboard_tool import TeacherDashboardTool
 from tasks.dashboard_tasks import generate_dashboard_metrics_task
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Initialize dashboard tool
 teacher_dashboard_tool = TeacherDashboardTool()
@@ -19,9 +20,9 @@ class TeacherDashboardAgent(Agent):
     async def process(self, inputs: dict):
         try:
             # Extract inputs as needed for dashboard metrics
-            quiz_data = inputs.get("QuizAgent")
-            student_levels = inputs.get("StudentLevelAgent")
-            predictive_data = inputs.get("PredictiveAnalyticsAgent")
+            quiz_data = inputs.get("QuizAgent", {})
+            student_levels = inputs.get("StudentLevelAgent", {})
+            predictive_data = inputs.get("PredictiveAnalyticsAgent", {})
 
             context = {
                 "quiz_data": quiz_data,
@@ -67,7 +68,11 @@ teacher_dashboard_agent = TeacherDashboardAgent(
     memory_handler=memory_handler,
     allow_delegation=True,
     verbose=True,
-    llm_config={"model": "gemini-pro", "temperature": 0.7, "max_tokens": 2048},
+    llm=ChatGoogleGenerativeAI(
+        model="models/gemini-2.5-pro",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.3
+    ),
     respect_context_window=True,
     code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
     user_type="teacher",

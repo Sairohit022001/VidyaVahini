@@ -2,6 +2,7 @@ from crewflows import Agent
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tasks.gamification_tasks import generate_gamification_task
 from tools.gamification_tool import GamificationTool
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 memory_handler = LocalMemoryHandler(
     session_id="gamification_agent_session",
@@ -19,13 +20,35 @@ class GamificationAgentWrapper(Agent):
                 "unlock badges for milestones; track leaderboard positions; "
                 "promote student engagement via challenges and streak tracking."
             )
+        # Remove the function from the tasks list
+        if 'tasks' in kwargs and isinstance(kwargs['tasks'], list):
+            kwargs['tasks'] = [task for task in kwargs['tasks'] if not callable(task)]
+
         super().__init__(**kwargs)
 
     async def process(self, inputs: dict):
         try:
-            # Assuming generate_gamification_task.run() is sync; if async, use await
-            result = generate_gamification_task.run(inputs)
-            return result
+            # Call the function to get a task instance
+            # Assuming 'self' is the agent instance needed by generate_gamification_task
+            task_instance = generate_gamification_task(agent=self)
+
+            # Ensure the task instance has a callable execute or run method
+            if hasattr(task_instance, "execute") and callable(task_instance.execute):
+                # Call the execute method on the task instance
+                # crewai.Task's execute method might not be async by default, check its definition
+                result = task_instance.execute(inputs) # Or await task_instance.execute(inputs) if it's async
+                return result
+            elif hasattr(task_instance, "run") and callable(task_instance.run):
+                 # If it's a custom task with a run method (like your BaseTask)
+                maybe_coro = task_instance.run(inputs)
+                if hasattr(maybe_coro, "__await__"):
+                     result = await maybe_coro
+                else:
+                     result = maybe_coro
+                return result
+            else:
+                return {"error": "Generated task instance has no callable 'execute' or 'run' method."}
+
         except Exception as e:
             return {"error": f"GamificationAgent process() failed: {str(e)}"}
 
@@ -60,7 +83,7 @@ gamification_agent = GamificationAgentWrapper(
     allow_delegation=True,
     verbose=True,
     tools=[gamification_tool],
-    tasks=[generate_gamification_task],
+    tasks=[], # Removed the function from the tasks list
     user_type="teacher",
     metadata={
         "grade_range": "1-10 and UG",
@@ -73,7 +96,11 @@ gamification_agent = GamificationAgentWrapper(
         "author": "EduTech Team",
         "license": "MIT"
     },
-    llm_config={"model": "gemini-pro", "temperature": 0.6},
+    llm=ChatGoogleGenerativeAI(
+        model="models/gemini-2.5-pro",
+        google_api_key=os.getenv("GEMINI_API_KEY"),
+        temperature=0.3
+    ),
     respect_context_window=True,
     code_execution_config={
         "enabled": True,
