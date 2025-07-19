@@ -6,7 +6,7 @@ import types
 import inspect
 import asyncio
 from langchain_google_genai import ChatGoogleGenerativeAI
-
+import os
 # Initialize memory handler for the agent
 memory_handler = LocalMemoryHandler(
     session_id="course_planner_session",                    

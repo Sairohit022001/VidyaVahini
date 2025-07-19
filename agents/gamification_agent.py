@@ -3,7 +3,7 @@ from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tasks.gamification_tasks import generate_gamification_task
 from tools.gamification_tool import GamificationTool
 from langchain_google_genai import ChatGoogleGenerativeAI
-
+import os
 memory_handler = LocalMemoryHandler(
     session_id="gamification_agent_session",
     file_path="memory/gamification_agent_memory.json"
