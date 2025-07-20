@@ -8,6 +8,6 @@ protobuf==4.25.3
 pydantic==2.7.1
 langchain-google-genai==0.0.9
 google-generativeai==0.3.2
-fastapi==0.115.9  # Updated to match chromadb requirement
+fastapi==0.115.9        # ✅ Compatible with chromadb
 uvicorn==0.30.1
-chromadb==1.0.4
+chromadb==1.0.4         # ✅ Latest with fastapi pin
