@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+*.sqlite3
+*.db
+.vscode/
+*.log
+*.zip
+*.tar.gz
+tests/
+.git/
+.gitignore
+vidyavahini-tts-e8ebc3dc20f2.json  # prevent key from being built into image!
