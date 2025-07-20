@@ -18,7 +18,7 @@ from typing import Optional, Dict, AsyncIterator # Import AsyncIterator
 from functools import wraps
 import structlog
 import traceback
-from contextlib import asynccontextmanager # Import asynccontextmanager
+from contextlib import asynccontextmanager 
 
  
 from agents.lesson_planner_agent import lesson_planner_agent
@@ -238,6 +238,37 @@ def get_allowed_agents(user_role: str, user_level: Optional[int]):
     else:
         # Unknown role: no access
         return set()
+
+
+@app.post("/manage-content")
+async def manage_content(request: Request):
+    headers = request.headers
+    user_role = headers.get("x-user-role", "student").lower()
+
+    if user_role != "teacher":
+        return JSONResponse(content={"error": "Only teachers can manage content"}, status_code=403)
+
+    body = await request.json()
+    action = body.get("action")  # Expected: 'save', 'edit', 'publish', 'draft'
+    content = body.get("content")
+    content_type = body.get("type", "unknown")
+    topic = body.get("topic", "unknown")
+
+    if not content or not action:
+        return JSONResponse(content={"error": "Content and action are required"}, status_code=400)
+
+    # Simulated logic for storing different types of updates (extendable to Firestore later)
+    print(f"[ACTION: {action.upper()} BY TEACHER]")
+    print(f"Type: {content_type}")
+    print(f"Topic: {topic}")
+    print("Content:")
+    print(content)
+
+    return {
+        "status": "success",
+        "message": f"Content for topic '{topic}' {action.lower()}ed successfully."
+    }
+
 
 # Helper to map agent instance names to their string keys used above
 agent_instance_to_name = {
