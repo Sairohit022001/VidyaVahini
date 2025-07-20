@@ -1,3 +1,0 @@
-google-cloud-texttospeech
-python-dotenv
-pydantic
