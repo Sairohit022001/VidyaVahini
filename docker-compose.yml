@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/app  # Mount current directory for live code changes (optional)
+      - ./vidyavahini-tts-e8ebc3dc20f2.json:/app/vidyavahini-tts-e8ebc3dc20f2.json:ro  # Mount credentials file read-only
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/vidyavahini-tts-e8ebc3dc20f2.json
+    command: uvicorn main:app --host 0.0.0.0 --port 8080 --reload
