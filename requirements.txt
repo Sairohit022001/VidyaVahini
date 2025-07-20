@@ -10,4 +10,4 @@ langchain-google-genai==0.0.9
 google-generativeai==0.3.2
 fastapi      # ✅ Compatible with chromadb
 uvicorn==0.30.1
-chromadb==1.0.4         # ✅ Latest with fastapi pin
+chromadb        # ✅ Latest with fastapi pin
