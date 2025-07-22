@@ -68,7 +68,7 @@ ask_me_agent = AskMeAgent(
     tasks=[ask_question_task],
     user_type="teacher",
     metadata={
-        "supported_grades": "6-12, UG",
+        "supported_grades": "1-12, UG",
         "supported_subjects": "All core subjects",
         "dialect_adaptation": True,
         "voice_narration": True,
