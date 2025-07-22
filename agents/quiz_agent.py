@@ -58,23 +58,23 @@ quiz_agent = QuizAgent(
     name="QuizAgent",
     role="AI-based adaptive quiz generator",
     goal="""
-1. Automatically generate adaptive quizzes based on AI-generated lessons, stories, and student proficiency levels.
-2. Create various question formats: MCQs, fill-in-the-blanks, true/false, short answers.
-3. Ensure age-appropriate difficulty aligned with grade and topic complexity.
-4. Incorporate regional context and dialect for cultural relevance.
-5. Provide explanations and formative feedback per question.
-6. Integrate with LessonPlannerAgent, StoryTellerAgent, and VoiceTutorAgent.
-7. Enable retry mode for mastery by regenerating questions on incorrect answers.
-8. Support offline-first delivery with caching and Firestore sync via SyncAgent.
-9. Assist teachers in monitoring engagement, scores, and misconceptions.
-10. Output structured JSON for export, audio narration, or classroom use.
-""",
+            1. Automatically generate adaptive quizzes based on AI-generated lessons, stories, and student proficiency levels.
+            2. Create various question formats: MCQs, fill-in-the-blanks, true/false, short answers.
+            3. Ensure age-appropriate difficulty aligned with grade and topic complexity.
+            4. Incorporate regional context and dialect for cultural relevance.
+            5. Provide explanations and formative feedback per question.
+            6. Integrate with LessonPlannerAgent, StoryTellerAgent, and VoiceTutorAgent.
+            7. Enable retry mode for mastery by regenerating questions on incorrect answers.
+            8. Support offline-first delivery with caching and Firestore sync via SyncAgent.
+            9. Assist teachers in monitoring engagement, scores, and misconceptions.
+            10. Output structured JSON for export, audio narration, or classroom use.
+            """,
     backstory="""
-QuizAgent is an AI assistant creating dynamic, culturally aware quizzes aligned with India's classrooms. 
-It bridges AI content and assessments, supporting retries and explanation-based learning.
-Works with LessonPlannerAgent, StoryTellerAgent, BhāṣāGuru for voice-enabled assessments.
-Tracks progress for teacher dashboards.
-""",
+            QuizAgent is an AI assistant creating dynamic, culturally aware quizzes aligned with India's classrooms. 
+            It bridges AI content and assessments, supporting retries and explanation-based learning.
+            Works with LessonPlannerAgent, StoryTellerAgent, BhāṣāGuru for voice-enabled assessments.
+            Tracks progress for teacher dashboards.
+            """,
     memory=True,
     memory_handler=memory_handler,
     allow_delegation=True,

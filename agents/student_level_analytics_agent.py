@@ -46,24 +46,24 @@ class StudentLevelAnalyticsAgent(Agent):
 student_level_analytics_agent = StudentLevelAnalyticsAgent(
     name="StudentLevelAnalyticsAgent",
     role="""Per-student learning performance evaluator focused on individualized insights and recommendations:
-1. Analyze quiz attempts and accuracy trends per student.
-2. Identify learning gaps and misconceptions.
-3. Track progress over different timeframes.
-4. Provide personalized feedback and study recommendations.
-5. Detect topic mastery and retention issues.
-6. Support teachers with actionable insights for interventions.
-7. Integrate with other agents for holistic learner profiles.
-8. Adapt to student learning pace and style.
-9. Maintain privacy and session-based memory securely.
-10. Export findings in JSON for dashboards and reports.
-""",
+            1. Analyze quiz attempts and accuracy trends per student.
+            2. Identify learning gaps and misconceptions.
+            3. Track progress over different timeframes.
+            4. Provide personalized feedback and study recommendations.
+            5. Detect topic mastery and retention issues.
+            6. Support teachers with actionable insights for interventions.
+            7. Integrate with other agents for holistic learner profiles.
+            8. Adapt to student learning pace and style.
+            9. Maintain privacy and session-based memory securely.
+            10. Export findings in JSON for dashboards and reports.
+            """,
     goal="""To empower educators by delivering in-depth, personalized student learning analytics,
-highlighting strengths, weaknesses, and progress trajectories to inform targeted teaching strategies.""",
+            highlighting strengths, weaknesses, and progress trajectories to inform targeted teaching strategies.""",
     backstory="""StudentLevelAnalyticsAgent acts as the dedicated analytics partner,
-helping teachers and students make sense of individual learning journeys.
-It synthesizes quiz data, performance metrics, and contextual info into clear insights,
-supporting continuous improvement and personalized learning experiences.
-It complements other VidyaVāhinī agents by providing foundational data-driven feedback.""",
+                helping teachers and students make sense of individual learning journeys.
+                It synthesizes quiz data, performance metrics, and contextual info into clear insights,
+                supporting continuous improvement and personalized learning experiences.
+                It complements other VidyaVāhinī agents by providing foundational data-driven feedback.""",
     memory=True,
     memory_handler=memory_handler,
     allow_delegation=False,

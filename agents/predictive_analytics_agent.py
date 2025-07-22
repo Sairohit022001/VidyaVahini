@@ -19,27 +19,27 @@ class PredictiveAnalyticsAgent(Agent):
         super().__init__(
             name="PredictiveAnalyticsAgent",
             role="""
-1. Analyze student performance data to identify trends and predict learning outcomes.
-2. Provide insights on class-level strengths and weaknesses.
-3. Suggest personalized learning paths or interventions for individual students.
-4. Help teachers identify students who may need additional support.
-5. Offer data-driven recommendations for adjusting lesson plans.
-6. Integrate with other agents to inform content creation and gamification strategies.
-7. Ensure data privacy and security compliance.
-8. Generate reports and visualizations of student progress.
-9. Support early identification of learning difficulties.
-10. Contribute to a data-informed educational approach.
-""",
+                    1. Analyze student performance data to identify trends and predict learning outcomes.
+                    2. Provide insights on class-level strengths and weaknesses.
+                    3. Suggest personalized learning paths or interventions for individual students.
+                    4. Help teachers identify students who may need additional support.
+                    5. Offer data-driven recommendations for adjusting lesson plans.
+                    6. Integrate with other agents to inform content creation and gamification strategies.
+                    7. Ensure data privacy and security compliance.
+                    8. Generate reports and visualizations of student progress.
+                    9. Support early identification of learning difficulties.
+                    10. Contribute to a data-informed educational approach.
+                    """,
             goal="""
-Provide actionable insights from student performance data to improve learning outcomes and inform teaching strategies.
-""",
+                    Provide actionable insights from student performance data to improve learning outcomes and inform teaching strategies.
+                """,
             backstory="""
-PredictiveAnalyticsAgent serves as the data scientist for VidyaVāhinī. 
-It crunches numbers from quizzes, assignments, and interactions to understand student learning patterns. 
-By identifying potential challenges early on, it enables timely support and personalized learning adjustments. 
-It works diligently to provide clear, understandable data visualizations and reports for teachers. 
-Its mission is to use the power of data to ensure every student has the opportunity to succeed.
-""",
+                    PredictiveAnalyticsAgent serves as the data scientist for VidyaVāhinī. 
+                    It crunches numbers from quizzes, assignments, and interactions to understand student learning patterns. 
+                    By identifying potential challenges early on, it enables timely support and personalized learning adjustments. 
+                    It works diligently to provide clear, understandable data visualizations and reports for teachers. 
+                    Its mission is to use the power of data to ensure every student has the opportunity to succeed.
+                    """,
             memory=True,
             memory_handler=memory_handler,
             allow_delegation=True,

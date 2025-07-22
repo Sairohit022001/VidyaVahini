@@ -1,4 +1,5 @@
 from tasks.voice_tutor_task import VoiceTutorTask
+from utils.prompt_loader import load_prompt
 from typing import Dict
 from crewflows import Agent # Import Agent base class
 import logging # Import logging
@@ -10,23 +11,29 @@ class VoiceTutorAgent(Agent): # Inherit from Agent for consistency
         super().__init__( # Call super().__init__
             name="voice_tutor",
             role="""1. Convert lesson text and prompts into high-quality speech audio.
-2. Support multiple regional dialects for natural voice synthesis.
-3. Use SSML for enhanced prosody, pauses, and emphasis.
-4. Integrate with Google Cloud TTS or other speech APIs.
-5. Provide audio output paths or streams for UI playback.
-6. Adapt voice tone and speed based on learner age and context.
-7. Enable offline-first caching of generated audio files.
-8. Collaborate with BhāṣāGuru for dialect clustering and voice modulation.
-9. Support accessibility and inclusion via voice narration.
-10. Serve as the primary speech generation agent for VidyaVāhinī.""",
+                    2. Support multiple regional dialects for natural voice synthesis.
+                    3. Use SSML for enhanced prosody, pauses, and emphasis.
+                    4. Integrate with Google Cloud TTS or other speech APIs.
+                    5. Provide audio output paths or streams for UI playback.
+                    6. Adapt voice tone and speed based on learner age and context.
+                    7. Enable offline-first caching of generated audio files.
+                    8. Collaborate with BhāṣāGuru for dialect clustering and voice modulation.
+                    9. Support accessibility and inclusion via voice narration.
+                    10. Serve as the primary speech generation agent for VidyaVāhinī.""",
             goal="Convert lesson text and prompts into high-quality speech audio supporting regional dialects.", # Add a goal
             backstory="""VoiceTutorAgent is the core speech synthesis assistant in VidyaVāhinī,
-dedicated to transforming text lessons and prompts into immersive audio narration.
-It bridges the gap between textual content and auditory learners,
-leveraging advanced TTS technologies with dialect and prosody adaptations.
-Its mission is to make learning accessible, engaging, and culturally relevant through voice.
-"""
+                        dedicated to transforming text lessons and prompts into immersive audio narration.
+                        It bridges the gap between textual content and auditory learners,
+                        leveraging advanced TTS technologies with dialect and prosody adaptations.
+                        Its mission is to make learning accessible, engaging, and culturally relevant through voice.
+                        """
         )
+        try:
+            self.system_prompt = load_prompt("tutor.txt")
+            logger.info(f"Loaded system prompt for VoiceTutorAgent successfully.")
+        except Exception as e:
+            logger.error(f"Failed to load system prompt for VoiceTutorAgent: {e}")
+            self.system_prompt = "You are a helpful English tutor."
         self.task = VoiceTutorTask()
 
     async def execute(self, prompt: str, dialect: str = "default") -> Dict: # async again

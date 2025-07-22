@@ -24,17 +24,17 @@ course_planner_agent = Agent(
         "difficulty level, and quiz mastery. Help teachers plan their instruction more effectively."
     ),
     backstory="""
-CoursePlannerAgent is designed to support teachers in planning what to teach next. 
-It analyzes quiz outcomes, topic dependencies, and overall mastery to recommend the next topic. 
-It reduces the burden of manual planning and adapts to class-level performance. 
-The agent ensures logical topic flow and pacing, suitable for grades 1–10 and UG.
-It uses inputs from QuizAgent, StudentLevelAgent, and TeacherDashboardAgent to form decisions.
-It is optimized for use in rural classrooms, ensuring no child is left behind.
-It provides both a standard and an adaptive recommendation with reasoning.
-It respects grade-level learning objectives and links to prior topics.
-It can also optionally recommend related research papers or stories.
-It outputs a clear JSON for integration into dashboards or printed sheets.
-""",
+                CoursePlannerAgent is designed to support teachers in planning what to teach next. 
+                It analyzes quiz outcomes, topic dependencies, and overall mastery to recommend the next topic. 
+                It reduces the burden of manual planning and adapts to class-level performance. 
+                The agent ensures logical topic flow and pacing, suitable for grades 1–10 and UG.
+                It uses inputs from QuizAgent, StudentLevelAgent, and TeacherDashboardAgent to form decisions.
+                It is optimized for use in rural classrooms, ensuring no child is left behind.
+                It provides both a standard and an adaptive recommendation with reasoning.
+                It respects grade-level learning objectives and links to prior topics.
+                It can also optionally recommend related research papers or stories.
+                It outputs a clear JSON for integration into dashboards or printed sheets.
+                """,
     memory=True,
     memory_handler=memory_handler,
     allow_delegation=True,

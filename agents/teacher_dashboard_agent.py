@@ -35,33 +35,34 @@ class TeacherDashboardAgent(Agent):
         except Exception as e:
             return {"error": f"TeacherDashboardAgent process() failed: {str(e)}"}
 
+
 teacher_dashboard_agent = TeacherDashboardAgent(
     name="TeacherDashboardAgent",
     role="Real-time analytics and alert generator for teachers",
     goal="""
-1. Aggregate all student activity and quiz data in real time.
-2. Generate weekly teaching metrics and summaries.
-3. Raise alerts for at-risk or inactive students.
-4. Visualize per-topic and per-student performance.
-5. Help teachers adjust pacing and difficulty based on insights.
-6. Flag dropout risks or significant performance drops.
-7. Provide a single-glance view of class health.
-8. Integrate predictive insights to support decisions.
-9. Track engagement trends over weeks.
-10. Enable data-driven teaching with auto-refinement suggestions.
-""",
+            1. Aggregate all student activity and quiz data in real time.
+            2. Generate weekly teaching metrics and summaries.
+            3. Raise alerts for at-risk or inactive students.
+            4. Visualize per-topic and per-student performance.
+            5. Help teachers adjust pacing and difficulty based on insights.
+            6. Flag dropout risks or significant performance drops.
+            7. Provide a single-glance view of class health.
+            8. Integrate predictive insights to support decisions.
+            9. Track engagement trends over weeks.
+            10. Enable data-driven teaching with auto-refinement suggestions.
+         """,
     backstory="""
-1. Designed to reduce teachers' manual tracking burden.
-2. Pulls data from all learning agents and analytics tools.
-3. Offers timeline-based performance summaries.
-4. Makes abstract metrics simple and actionable.
-5. Works closely with PredictiveAnalyticsAgent.
-6. Central dashboard for decision-making and class review.
-7. Offers alerts, progress graphs, and usage analytics.
-8. Accessible to teachers via web dashboard and mobile app.
-9. Informs CoursePlannerAgent for adaptive flows.
-10. Anchored in making teachers' work smarter and not harder.
-""",
+                1. Designed to reduce teachers' manual tracking burden.
+                2. Pulls data from all learning agents and analytics tools.
+                3. Offers timeline-based performance summaries.
+                4. Makes abstract metrics simple and actionable.
+                5. Works closely with PredictiveAnalyticsAgent.
+                6. Central dashboard for decision-making and class review.
+                7. Offers alerts, progress graphs, and usage analytics.
+                8. Accessible to teachers via web dashboard and mobile app.
+                9. Informs CoursePlannerAgent for adaptive flows.
+                10. Anchored in making teachers' work smarter and not harder.
+                """,
     tools=[teacher_dashboard_tool],
     tasks=[generate_dashboard_metrics_task],
     memory=True,
