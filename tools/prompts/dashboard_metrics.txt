@@ -15,6 +15,8 @@ Generate a JSON response with:
 3. Progress insights (Are students ready to move on?).
 4. A confidence score for how reliable the insights are.
 5. A simple traffic light signal (green, yellow, red) for teacher action.
+6. Graph data for visualization (e.g., quiz score distribution, engagement trends, time spent per student).
+7. Any additional analytics or insights that would help the teacher (e.g., top performers, students needing attention, comparison with previous topics).
 
 Make your output friendly, accurate, and useful for teachers managing multi-grade classrooms.
 
@@ -24,3 +26,31 @@ Respond ONLY with a valid JSON object with these keys:
 - "progress_status"
 - "confidence_score"
 - "action_signal"
+- "graphs": {
+    "quiz_score_distribution": [list of scores or histogram bins],
+    "engagement_trend": [list of engagement values over time],
+    "time_spent_per_student": [list of times or summary stats]
+  }
+- "additional_insights": {
+    "top_performers": [list of student names or IDs],
+    "students_needing_attention": [list of student names or IDs],
+    "comparison_with_previous": "..."
+  }
+
+Example output:
+{
+  "summary": "Most students scored above 70% on the quiz, showing good understanding of the topic.",
+  "intervention": "No major intervention needed. Continue to the next topic, but review with students who scored below 50%.",
+  "progress_status": "Ready to move on",
+  "confidence_score": 0.92,
+  "action_signal": "green",
+  "graphs": {
+    "quiz_score_distribution": [45, 60, 72, 80, 90, 95],
+    "engagement_trend": [0.7, 0.8, 0.85, 0.9],
+    "time_spent_per_student": [12, 15, 10, 18, 14]
+  },
+  "additional_insights": {
+    "top_performers": ["Asha", "Ravi"],
+    "students_needing_attention": ["Sita"],
+    "comparison_with_previous": "Scores improved by 10% compared to the last topic."
+  }
