@@ -1,3 +1,4 @@
+import os
 PROMPT_TEMPLATES = {
     "lesson_generation": """
 You are an AI lesson co-teacher helping to generate structured lesson content for Indian classrooms.
@@ -102,16 +103,14 @@ def get_prompt_template(name: str) -> str:
     """
     return PROMPT_TEMPLATES.get(name, "")
 
-def load_prompt(name: str) -> str:
-    """
-    Reads a prompt template from a text file located in 'prompt_templates/' folder.
 
-    This is used if you prefer storing prompts in files rather than in the dictionary.
-    """
-    path = f"prompt_templates/{name}.txt"
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        # Fallback to in-memory prompt template if file not found
-        return get_prompt_template(name)
+
+PROMPT_DIR = os.path.join(os.path.dirname(__file__), '../prompts')
+
+def load_prompt(filename: str) -> str:
+    path = os.path.abspath(os.path.join(PROMPT_DIR, filename))
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Prompt file not found: {path}")
+    with open(path, 'r', encoding='utf-8') as f:
+        return f.read().strip()
+
