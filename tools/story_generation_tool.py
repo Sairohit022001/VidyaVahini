@@ -21,7 +21,7 @@ class StoryGenerationTool:
             convert_system_message_to_human=True
         )
         self.prompt_template = PromptTemplate.from_template(
-            get_prompt_template("story_generation")
+            get_prompt_template("story_teller")
         )
 
     def clean_llm_json_output(self, raw_text: str) -> str:

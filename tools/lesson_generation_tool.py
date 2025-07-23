@@ -43,8 +43,10 @@ class LessonGenerationTool:
         topic = inputs.get("topic", "Photosynthesis")
         level = inputs.get("level", "Medium")
         dialect = inputs.get("dialect", "Telangana Telugu")
+        grade = inputs.get("grade")
 
-        prompt = self.prompt_template.format(topic=topic, level=level, dialect=dialect)
+
+        prompt = self.prompt_template.format(topic=topic, level=level, dialect=dialect, grade=grade)
         print("📌 Prompt sent to Gemini:")
         print(prompt)
 

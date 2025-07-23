@@ -1,3 +1,5 @@
+# tasks/task.py
+
 class Task:
     def __init__(
         self,
@@ -30,4 +32,8 @@ class Task:
     def set_agent(self, agent):
         self.agent = agent
 
-    # Add other methods like run(), validate(), etc. if needed
+    async def run(self):
+        """
+        Override this method in child classes to implement task logic.
+        """
+        raise NotImplementedError("Subclasses must implement the async run() method.")

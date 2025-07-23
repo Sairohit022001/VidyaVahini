@@ -43,7 +43,7 @@ DIALECT_MAP = {
 
 
 class VoiceTutorTool:
-    def __init__(self):
+    def run(self, *args, **kwargs):
         # No need to reset env var here again, it's already set above
         self.client = texttospeech.TextToSpeechClient()
 

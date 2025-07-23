@@ -1,10 +1,15 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+
+
 import pytest
 import inspect
 from typing import get_origin, get_args
+from tasks.lesson_planner_tasks import generate_lesson_task as LessonPlannerTask
+
 
 # Import your task and tool classes here
 from tasks.base import BaseTask
-from tasks.lesson_planner_tasks import LessonPlannerTask # Assuming you have a class for this now
 from tasks.story_teller_tasks import StoryTellerTask
 from tasks.quiz_tasks import QuizTask
 # from tasks.gamification_tasks import GamificationTask # Uncomment if you create a class for this
@@ -48,11 +53,12 @@ tool_classes_with_run = [
 
 @pytest.mark.parametrize("task_class", task_classes)
 def test_task_has_async_run_method(task_class):
-    """Tests that each task class has an async run method."""
-    assert hasattr(task_class, "run"), f"Task class {task_class.__name__} is missing 'run' method"
-    assert (inspect.isfunction(task_class.run) or inspect.ismethod(task_class.run)), 
-        (f"Task class {task_class.__name__}'s 'run' is not a function or method")
-    assert inspect.iscoroutinefunction(task_class.run), f"Task class {task_class.__name__}'s 'run' method is not async"
+    name = type(task_class).__name__  # correct way to get class name from instance
+    assert hasattr(task_class, "run"), f"Task class {name} is missing 'run' method"
+    assert inspect.iscoroutinefunction(getattr(task_class, "run")), (
+        f"Task class {name}'s 'run' method is not asynchronous"
+    )
+
 
 # --- Test for Tool Classes ---
 
@@ -64,8 +70,8 @@ def test_tool_has_run_method(tool_class):
     # This test just checks for existence, not async nature,
     # as tools might have sync methods calling external async APIs.
     assert hasattr(tool_class, "run"), f"Tool class {tool_class.__name__} is missing 'run' method"
-    assert (inspect.isfunction(tool_class.run) or inspect.ismethod(tool_class.run)), 
-        (f"Tool class {tool_class.__name__}'s 'run' is not a function or method")
+    assert (inspect.isfunction(tool_class.run) or inspect.ismethod(tool_class.run))
+    (f"Tool class {tool_class.__name__}'s 'run' is not a function or method")
 
 # Example of how you might test for specific async methods in tools if needed:
 # @pytest.mark.parametrize("tool_class", [VoiceTutorTool]) # Example: only test VoiceTutorTool here

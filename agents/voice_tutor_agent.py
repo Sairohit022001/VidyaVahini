@@ -1,5 +1,5 @@
 from tasks.voice_tutor_task import VoiceTutorTask
-from utils.prompt_loader import load_prompt
+from tools.utils.prompt_loader import load_prompt
 from typing import Dict
 from crewflows import Agent # Import Agent base class
 import logging # Import logging
@@ -29,7 +29,7 @@ class VoiceTutorAgent(Agent): # Inherit from Agent for consistency
                         """
         )
         try:
-            self.system_prompt = load_prompt("tutor.txt")
+            self.system_prompt = load_prompt("voice_tutor.txt")
             logger.info(f"Loaded system prompt for VoiceTutorAgent successfully.")
         except Exception as e:
             logger.error(f"Failed to load system prompt for VoiceTutorAgent: {e}")

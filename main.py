@@ -39,6 +39,7 @@ from agents.content_creator_agent import content_creator_agent
 from crewflows import Crew
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from llms.llm_config import custom_llm_config
+from routes.firestore_routes import router as firestore_router
 
 
 
@@ -79,6 +80,18 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan # Pass the decorated lifespan function here
 )
+
+# ✅ Include Firestore agent operation routes
+app.include_router(
+    firestore_router,
+    prefix="/firestore",         # All endpoints will be under /firestore
+    tags=["Firestore Operations"]
+)
+
+# ✅ Optional: Root endpoint
+@app.get("/")
+async def root():
+    return {"message": "Welcome to VidyaVāhinī Agentic Backend 🚀"}
 
 # CORS middleware
 app.add_middleware(
