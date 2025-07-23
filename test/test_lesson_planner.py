@@ -1,4 +1,6 @@
 # test/test_lesson_planner.py
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 import os
 import sys
@@ -10,6 +12,7 @@ def test_lesson_generation():
     tool = LessonGenerationTool()
     inputs = {
         "topic": "Photosynthesis",
+        "grade": "7",
         "level": "Medium",
         "dialect": "Telangana Telugu"
     }

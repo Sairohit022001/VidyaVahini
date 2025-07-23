@@ -13,3 +13,12 @@ Please provide the answer in JSON format with the following fields:
 - follow_up_question: A suggested follow-up question
 - confidence_score: A confidence value between 0 and 1
 - suggested_agents: List of agents to continue learning with
+
+Example output:
+{
+  "answer": "The water cycle describes how water moves from the earth to the sky and back again.",
+  "source_context": "The water cycle is the process by which water circulates between the earth's oceans, atmosphere, and land.",
+  "follow_up_question": "What are the main stages of the water cycle?",
+  "confidence_score": 0.95,
+  "suggested_agents": ["QuizAgent","CoursePlannerAgent"]
+}

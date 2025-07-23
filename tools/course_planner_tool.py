@@ -11,7 +11,7 @@ logger = get_logger("CoursePlannerTool")
 class CoursePlannerTool:
     def __init__(self):
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-pro",
+            model="gemini-2.5-pro",
             temperature=0.65,
             convert_system_message_to_human=True
         )
