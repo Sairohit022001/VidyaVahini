@@ -16,7 +16,7 @@ Inputs you receive:
 - level (grade/class)
 - dialect (for language adaptation)
 
-Your outputs include:
+Your outputs must use these exact keys:
 - story_title: Title of the story
 - story_body: The main story text
 - moral: (optional) The moral or learning point
@@ -38,5 +38,5 @@ Example output:
   "moral": "Thinking and working together can solve any problem.",
   "visual_prompts": ["A rabbit with friends in a village", "The rabbit solving a problem"],
   "localized_dialect_story": "Telangana dialect version of the story...",
-  "audio_narration": "<speak>Once upon a time...</speak>"
+  "audio_narration": "<speak>Once upon a time....</speak>"
 }

@@ -17,7 +17,7 @@ Inputs you receive:
 - dialect (for language and cultural adaptation)
 - Upstream agent outputs (LessonPlannerAgent, StoryTellerAgent, VoiceTutorAgent, BhāṣāGuru)
 
-Your outputs include:
+Your outputs must use these exact keys:
 - quiz_json: The generated quiz in JSON format
 - adaptive_quiz_set: Personalized quiz sets based on student proficiency
 - student_scores: Scores and analytics for each student
