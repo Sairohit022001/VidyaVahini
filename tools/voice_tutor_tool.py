@@ -1,103 +1,99 @@
 import os
-
-
+import base64
+from tempfile import NamedTemporaryFile
 from google.cloud import texttospeech
 
-from google.oauth2 import service_account
-from google.cloud import texttospeech
+# Minimal BaseTool definition to replace missing import
+class BaseTool:
+    def __init__(self):
+        pass
 
-import os
-from google.oauth2 import service_account
-
-key_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-if not key_path:
-    raise Exception("GOOGLE_APPLICATION_CREDENTIALS environment variable not set")
-
-credentials = service_account.Credentials.from_service_account_file(key_path)
-
-
-# Dialect clustering map example
-DIALECT_MAP = {
-    "telangana": {
-        "language_code": "te-IN",
-        "voice_name": "te-IN-Standard-A",  # MALE
-        "ssml_gender": texttospeech.SsmlVoiceGender.MALE,
-        "prosody_rate": "medium",
-        "prosody_pitch": "+0st",
-    },
+# Dialect prosody settings
+DIALECT_PROSODY = {
     "andhra": {
-        "language_code": "te-IN",
-        "voice_name": "te-IN-Standard-B",  # FEMALE
-        "ssml_gender": texttospeech.SsmlVoiceGender.FEMALE,
-        "prosody_rate": "medium",
-        "prosody_pitch": "+1st",
+        "rate": "medium",
+        "pitch": "+2st"
     },
-    "default": {
-        "language_code": "en-IN",
-        "voice_name": "en-IN-Wavenet-D",  # ✅ This still works
-        "ssml_gender": texttospeech.SsmlVoiceGender.NEUTRAL,
-        "prosody_rate": "medium",
-        "prosody_pitch": "+0st",
+    "telangana": {
+        "rate": "slow",
+        "pitch": "-2st"
     },
+    "neutral": {
+        "rate": "medium",
+        "pitch": "0st"
+    }
 }
 
-
-class VoiceTutorTool:
-    def run(self, *args, **kwargs):
-        # No need to reset env var here again, it's already set above
+class VoiceTutorTool(BaseTool):
+    name = "Voice Tutor Tool"
+    description = "Converts text/lesson content into region-specific voice with SSML prosody"
+    
+    def __init__(self):
+        super().__init__()
+        # Initialize GCP TTS client
         self.client = texttospeech.TextToSpeechClient()
 
-    def _get_dialect_settings(self, dialect_name: str):
-        key = dialect_name.lower()
-        return DIALECT_MAP.get(key, DIALECT_MAP["default"])
+    def _get_prosody_settings(self, dialect: str):
+        return DIALECT_PROSODY.get(dialect.lower(), DIALECT_PROSODY["neutral"])
 
-    def _build_ssml(self, text: str, rate: str, pitch: str):
-        ssml_text = f"""
-        <speak>
-          <prosody rate="{rate}" pitch="{pitch}">
-            {text}
-          </prosody>
-        </speak>
+    def _wrap_ssml(self, text: str, dialect: str):
+        prosody = self._get_prosody_settings(dialect)
+        return f"""
+            <speak>
+                <prosody rate="{prosody['rate']}" pitch="{prosody['pitch']}">
+                    {text}
+                </prosody>
+            </speak>
         """
-        return ssml_text
 
-    def synthesize_speech(self, text: str, dialect: str = "default", output_path: str = "output.mp3") -> str:
-        dialect_settings = self._get_dialect_settings(dialect)
-
-        ssml = self._build_ssml(text, dialect_settings["prosody_rate"], dialect_settings["prosody_pitch"])
-
-        input_text = texttospeech.SynthesisInput(ssml=ssml)
-
+    def _synthesize_speech(self, ssml: str):
+        synthesis_input = texttospeech.SynthesisInput(ssml=ssml)
         voice = texttospeech.VoiceSelectionParams(
-            language_code=dialect_settings["language_code"],
-            name=dialect_settings["voice_name"],
-            ssml_gender=dialect_settings["ssml_gender"],
+            language_code="en-IN",
+            ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
         )
-
         audio_config = texttospeech.AudioConfig(
-            audio_encoding=texttospeech.AudioEncoding.MP3,
+            audio_encoding=texttospeech.AudioEncoding.MP3
         )
 
         response = self.client.synthesize_speech(
-            input=input_text,
+            input=synthesis_input,
             voice=voice,
-            audio_config=audio_config,
+            audio_config=audio_config
         )
 
-        with open(output_path, "wb") as out:
-            out.write(response.audio_content)
+        return response.audio_content
 
-        return output_path
+    def run(self, prompt: str, dialect: str = "neutral"):
+        try:
+            # Wrap prompt with SSML for prosody
+            ssml_text = self._wrap_ssml(prompt, dialect)
 
-    def generate_voice_tutor(self, text: str, dialect: str = "default") -> dict:
-        dialect_settings = self._get_dialect_settings(dialect)
-        ssml_text = self._build_ssml(text, dialect_settings["prosody_rate"], dialect_settings["prosody_pitch"])
-        output_file = f"voice_tutor_output_{dialect}.mp3"
+            # Synthesize speech audio content
+            audio_content = self._synthesize_speech(ssml_text)
 
-        audio_path = self.synthesize_speech(text, dialect, output_file)
+            # Save audio temporarily to a file
+            with NamedTemporaryFile(delete=False, suffix=".mp3") as out:
+                out.write(audio_content)
+                out.flush()
+                audio_path = out.name
 
-        return {
-            "ssml": ssml_text.strip(),
-            "audio_file": audio_path,
-            "dialect": dialect,
-        }
+            # Read audio and encode to base64 for transmission
+            with open(audio_path, "rb") as audio_file:
+                base64_audio = base64.b64encode(audio_file.read()).decode("utf-8")
+
+            # Clean up temporary audio file
+            os.remove(audio_path)
+
+            return {
+                "audio_base64": base64_audio,
+                "dialect": dialect,
+                "ssml_used": ssml_text.strip()
+            }
+
+        except Exception as e:
+            return {
+                "error": str(e),
+                "dialect": dialect,
+                "ssml_attempted": ssml_text if 'ssml_text' in locals() else None
+            }
