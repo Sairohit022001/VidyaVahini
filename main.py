@@ -121,6 +121,16 @@ app.include_router(
     tags=["Firestore Operations"]
 )
 
+from fastapi import APIRouter, Header
+from pydantic import BaseModel
+
+class CoursePlannerInput(BaseModel):
+    current_topic: str
+    quiz_score: int
+
+
+
+
 # ✅ Optional: Root endpoint
 @app.get("/")
 async def root():

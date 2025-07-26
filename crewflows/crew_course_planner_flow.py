@@ -26,6 +26,7 @@ from tools.course_planner_tool import CoursePlannerTool
 
 from pydantic import BaseModel, Field, ValidationError
 import logging
+import asyncio
 
 # Setup logging
 logging.basicConfig(
@@ -50,7 +51,7 @@ crew_course_planner = Crew(
     verbose=True
 )
 
-def run_course_planner_crew(current_topic: str, quiz_score: int):
+async def run_course_planner_crew(current_topic: str, quiz_score: int):
     try:
         validated_inputs = CoursePlannerInput(current_topic=current_topic, quiz_score=quiz_score)
         logger.info("Input validation passed")
@@ -58,7 +59,7 @@ def run_course_planner_crew(current_topic: str, quiz_score: int):
         inputs = validated_inputs.dict()
         logger.info(f"Running Course Planner with inputs: {inputs}")
 
-        result = crew_course_planner.kickoff(inputs=inputs)
+        result = await crew_course_planner.kickoff(inputs=inputs)
 
         logger.info("Course Planner Agent executed successfully")
         return result
@@ -72,6 +73,19 @@ def run_course_planner_crew(current_topic: str, quiz_score: int):
         return {"error": "Execution failed", "details": str(e)}
 
 if __name__ == "__main__":
-    output = run_course_planner_crew("Photosynthesis", 68)
+    import sys
+
+    # Simple CLI args support
+    topic = "Photosynthesis"
+    score = 68
+
+    if len(sys.argv) >= 3:
+        topic = sys.argv[1]
+        try:
+            score = int(sys.argv[2])
+        except ValueError:
+            logger.warning("Invalid score argument, using default 68")
+
+    output = asyncio.run(run_course_planner_crew(topic, score))
     print("\n[🗂️ COURSE PLANNER OUTPUT]\n")
     print(output)

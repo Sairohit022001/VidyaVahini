@@ -101,12 +101,10 @@ quiz_agent.add_input("dialect")
 quiz_agent.add_input("LessonPlannerAgent")
 quiz_agent.add_input("StoryTellerAgent")
 quiz_agent.add_input("VoiceTutorAgent")
-quiz_agent.add_input("BhāṣāGuru")
 
 # Expected outputs
 quiz_agent.add_output("quiz_json")
 quiz_agent.add_output("adaptive_quiz_set")
-quiz_agent.add_output("student_scores")
 quiz_agent.add_output("retry_feedback_report")
 
 # Sync wrapper

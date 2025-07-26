@@ -69,8 +69,8 @@ class LessonPlannerAgent(Agent):
 lesson_planner_agent = LessonPlannerAgent(
     name="lesson_planner_agent",
     role="AI co-teacher that helps educators design structured lessons, quizzes, stories, and visual content.",
-    goal="""...""",  # Truncated for brevity
-    backstory="""...""",  # Truncated for brevity
+    goal="""...""",  
+    backstory="""...""",  
     memory=True,
     memory_handler=memory_handler,
     allow_delegation=True,
