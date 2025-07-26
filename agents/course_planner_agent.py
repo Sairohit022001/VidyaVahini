@@ -64,20 +64,9 @@ course_planner_agent = Agent(
 
 course_planner_agent.add_input("PredictiveAnalyticsAgent")
 course_planner_agent.add_input("PDFFile")
-course_planner_agent.add_input("DatabaseLesson")
-course_planner_agent.add_input("UsePredictiveAnalyticsFlag")
 
-# Register outputs
-course_planner_agent.add_output("NextTopicRecommendation")
-course_planner_agent.add_output("AdaptiveNextTopicRecommendation")
-course_planner_agent.add_output("RelatedResearchPapers")
-course_planner_agent.add_output("RelatedStories")
-course_planner_agent.add_output("JSONOutput")
-course_planner_agent.add_output("TeacherInstructionPlan")
-course_planner_agent.add_output("ClassLevelPerformanceSummary")
-course_planner_agent.add_output("CurriculumProgressionReport")
-course_planner_agent.add_output("PacingGuide")
-course_planner_agent.add_output("LogicalTopicFlow")
+
+
 course_planner_agent.add_output("CoursePlanTimeline")  # ✅ New
 course_planner_agent.add_output("AnalyticsUsed")       # ✅ New
 
