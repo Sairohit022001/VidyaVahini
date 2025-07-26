@@ -4,6 +4,7 @@ import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { User, UserRole } from '../App';
+import axios from 'axios';
 
 interface LoginPageProps {
   onLogin: (user: User) => void;
@@ -12,14 +13,16 @@ interface LoginPageProps {
 export function LoginPage({ onLogin }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [grade, setGrade] = useState('');
+  const [studentId, setStudentId] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
-  const [selectedClass, setSelectedClass] = useState('');
   const [userType, setUserType] = useState<'student' | 'teacher'>('student');
   const [passwordError, setPasswordError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const classOptions = [
-    'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5',
-    'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'UG'
+  const gradeOptions = [
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'
   ];
 
   const validatePassword = (pass: string) => {
@@ -31,52 +34,113 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     return '';
   };
 
-  const handleGoogleAuth = () => {
-    if (isSignUp && userType === 'student' && !selectedClass) {
-      alert('Please select your class');
+  const handleRegister = async () => {
+    if (!email || !password || !name) {
+      alert('Please fill in all required fields');
       return;
     }
 
-    const mockUser: User = {
-      id: 'google-user-1',
-      name: 'Google User',
-      email: 'user@gmail.com',
-      role: userType === 'teacher' ? 'teacher' : selectedClass === 'UG' ? 'ug' : 'student',
-      class: userType === 'teacher' ? 'Class 6D' : (selectedClass === 'UG' ? 'Engineering' : selectedClass),
-      subject: userType === 'teacher' ? 'Mathematics' : (selectedClass === 'UG' ? 'Computer Science' : 'Science')
-    };
-    onLogin(mockUser);
+    if (!email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    const passwordValidation = validatePassword(password);
+    if (passwordValidation) {
+      setPasswordError(passwordValidation);
+      return;
+    }
+
+    if (userType === 'student' && (!grade || !studentId)) {
+      alert('Please fill in grade and student ID');
+      return;
+    }
+
+    setIsLoading(true);
+    setPasswordError('');
+
+    try {
+      const userData: any = {
+        name: name,
+      };
+
+      if (userType === 'student') {
+        userData.grade = parseInt(grade);
+        userData.student_id = studentId;
+      }
+
+      const payload = {
+        email: email,
+        password: password,
+        role: userType,
+        user_data: userData,
+      };
+
+      const response = await axios.post('http://localhost:8000/register', payload);
+      
+      alert('Registered successfully!');
+      
+      // Switch to login mode after successful registration
+      setIsSignUp(false);
+      setPassword('');
+      setName('');
+      setGrade('');
+      setStudentId('');
+
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      alert('Registration failed: ' + (error.response?.data?.detail || 'Something went wrong'));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleEmailAuth = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       alert('Please fill in all fields');
       return;
     }
-    
-    if (isSignUp) {
-      const passwordValidation = validatePassword(password);
-      if (passwordValidation) {
-        setPasswordError(passwordValidation);
-        return;
-      }
-      if (userType === 'student' && !selectedClass) {
-        alert('Please select your class');
-        return;
-      }
+
+    if (!email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
     }
-    
-    setPasswordError('');
-    const role: UserRole = userType === 'teacher' ? 'teacher' : selectedClass === 'UG' ? 'ug' : 'student';
-    const mockUser: User = {
-      id: 'email-user-1',
-      name: email.split('@')[0],
-      email,
-      role,
-      class: userType === 'teacher' ? 'Class 6D' : (selectedClass === 'UG' ? 'Engineering' : selectedClass),
-      subject: userType === 'teacher' ? 'Mathematics' : (selectedClass === 'UG' ? 'Computer Science' : 'Science')
-    };
-    onLogin(mockUser);
+
+    setIsLoading(true);
+
+    try {
+      const formData = {
+        email: email,
+        password: password,
+      };
+
+      const response = await axios.post('http://localhost:8000/login', formData);
+      const { token, role, user_data } = response.data;
+
+      // Store token and role in localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', role);
+
+      alert('Login successful!');
+
+      // Create user object for the app
+      const user: User = {
+        id: user_data?.id || 'user-1',
+        name: user_data?.name || email.split('@')[0],
+        email: email,
+        role: role as UserRole,
+        class: role === 'teacher' ? 'Class 6D' : `Class ${user_data?.grade || '6'}`,
+        subject: role === 'teacher' ? 'Mathematics' : 'Science'
+      };
+
+      onLogin(user);
+
+    } catch (error: any) {
+      console.error('Login error:', error);
+      alert('Login failed: ' + (error.response?.data?.detail || 'Invalid credentials'));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDemoLogin = (role: UserRole) => {
@@ -136,29 +200,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           <p className="text-muted-foreground">Sign in to continue your learning journey</p>
         </div>
 
-        {/* Demo Access Cards */}
-        {/* <div className="space-y-3">
-          <p className="text-sm text-center text-muted-foreground">Quick Demo Access</p>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <Button 
-              variant="outline" 
-              onClick={() => handleDemoLogin('student')}
-              className="h-16 flex flex-col items-center justify-center gap-2 bg-white/80 backdrop-blur-sm"
-            >
-              <span className="text-2xl">🎓</span>
-              <span className="text-sm">Student Demo</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleDemoLogin('teacher')}
-              className="h-16 flex flex-col items-center justify-center gap-2 bg-white/80 backdrop-blur-sm"
-            >
-              <span className="text-2xl">👨‍🏫</span>
-              <span className="text-sm">Teacher Demo</span>
-            </Button>
-          </div>
-        </div> */}
+
 
         {/* Main Login Card */}
         <Card className="bg-white/90 backdrop-blur-sm">
@@ -184,52 +226,27 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                     </SelectContent>
                   </Select>
                 </div>
-
-                {userType === 'student' && (
-                  <div>
-                    <label className="text-sm font-medium">Select your class:</label>
-                    <Select value={selectedClass} onValueChange={setSelectedClass}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose your class" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {classOptions.map((cls) => (
-                          <SelectItem key={cls} value={cls}>{cls}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
               </div>
             )}
 
-            {/* Google Auth */}
-            <Button 
-              onClick={handleGoogleAuth}
-              className="w-full"
-              variant="outline"
-              disabled={isSignUp && userType === 'student' && !selectedClass}
-            >
-              Continue with Google
-            </Button>
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-              </div>
-            </div>
-
-            {/* Email/Password */}
+            {/* Form Fields */}
             <div className="space-y-3">
+              {isSignUp && (
+                <Input
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              )}
+
               <Input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
+
               <div>
                 <Input
                   type="password"
@@ -249,12 +266,41 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   </div>
                 )}
               </div>
+
+              {/* Student-specific fields for registration */}
+              {isSignUp && userType === 'student' && (
+                <>
+                  <div>
+                    <label className="text-sm font-medium">Grade:</label>
+                    <Select value={grade} onValueChange={setGrade}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your grade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {gradeOptions.map((gradeOption) => (
+                          <SelectItem key={gradeOption} value={gradeOption}>
+                            Grade {gradeOption}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Input
+                    type="text"
+                    placeholder="Enter your Student ID"
+                    value={studentId}
+                    onChange={(e) => setStudentId(e.target.value)}
+                  />
+                </>
+              )}
+
               <Button 
-                onClick={handleEmailAuth}
+                onClick={isSignUp ? handleRegister : handleLogin}
                 className="w-full"
-                disabled={isSignUp && userType === 'student' && !selectedClass}
+                disabled={isLoading}
               >
-                {isSignUp ? 'Sign Up' : 'Sign In'}
+                {isLoading ? 'Please wait...' : (isSignUp ? 'Sign Up' : 'Sign In')}
               </Button>
             </div>
 
@@ -263,11 +309,14 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 variant="link"
                 onClick={() => {
                   setIsSignUp(!isSignUp);
-                  setSelectedClass('');
+                  setName('');
+                  setGrade('');
+                  setStudentId('');
                   setUserType('student');
                   setPasswordError('');
                 }}
                 className="text-sm"
+                disabled={isLoading}
               >
                 {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
               </Button>

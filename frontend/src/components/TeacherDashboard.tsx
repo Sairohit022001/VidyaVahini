@@ -6,7 +6,10 @@ import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { MessageCircle, Users, BookOpen, FileQuestion, Menu, Plus, Calendar, FileText, Upload, Wifi, WifiOff } from 'lucide-react';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { MessageCircle, Users, BookOpen, FileQuestion, Menu, Plus, Calendar, FileText, Upload, Wifi, WifiOff, Download, Edit, UserPlus, School } from 'lucide-react';
 import { User } from '../App';
 import { AIChatBot } from './AIChatBot';
 
@@ -18,19 +21,52 @@ interface TeacherDashboardProps {
   setIsDark: (dark: boolean) => void;
 }
 
+interface CoursePlanItem {
+  topic: string;
+  duration: string;
+}
+
+interface ClassData {
+  id: string;
+  grade: string;
+  section: string;
+  subject: string;
+  teacherUID: string;
+}
+
+interface StudentData {
+  id: string;
+  name: string;
+  classId?: string;
+}
+
 export function TeacherDashboard({ user, onNavigate, onLogout, isDark, setIsDark }: TeacherDashboardProps) {
   const [isOnline, setIsOnline] = useState(true);
-  const [selectedClass, setSelectedClass] = useState(user.class || 'Class 6D');
-  const [selectedSubject, setSelectedSubject] = useState(user.subject || 'Mathematics');
-  const [selectedLevel, setSelectedLevel] = useState('Beginner');
-  const [selectedLanguage, setSelectedLanguage] = useState('English');
   const [showChat, setShowChat] = useState(false);
   const [syncStatus, setSyncStatus] = useState('synced'); // synced, syncing, error
+  const [coursePlan, setCoursePlan] = useState<CoursePlanItem[]>([]);
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+  
+  // Class Management State
+  const [classes, setClasses] = useState<ClassData[]>([
+    { id: 'class-1', grade: '6', section: 'D', subject: 'Mathematics', teacherUID: user.id },
+    { id: 'class-2', grade: '7', section: 'A', subject: 'Science', teacherUID: user.id }
+  ]);
+  const [showCreateClassDialog, setShowCreateClassDialog] = useState(false);
+  const [showAddStudentDialog, setShowAddStudentDialog] = useState(false);
+  
+  // Create Class Form State
+  const [newClassGrade, setNewClassGrade] = useState('');
+  const [newClassSection, setNewClassSection] = useState('');
+  const [newClassSubject, setNewClassSubject] = useState('');
+  
+  // Add Student Form State
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [studentId, setStudentId] = useState('');
 
-  const classes = ['Class 6D', 'Class 7A', 'Class 8B', 'Class 9C', 'Class 10A'];
-  const subjects = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Science'];
-  const levels = ['Beginner', 'Intermediate', 'Advanced'];
-  const languages = ['English', 'Hindi', 'Tamil', 'Telugu', 'Bengali', 'Marathi'];
+  const grades = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+  const sections = ['A', 'B', 'C', 'D', 'E'];
+  const subjects = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Science', 'Physics', 'Chemistry', 'Biology'];
 
   const [students, setStudents] = useState([
     { id: 1, name: 'Alice Johnson', class: 'Class 6D', performance: 85, status: 'active' },
@@ -38,6 +74,78 @@ export function TeacherDashboard({ user, onNavigate, onLogout, isDark, setIsDark
     { id: 3, name: 'Charlie Brown', class: 'Class 6D', performance: 78, status: 'inactive' },
     { id: 4, name: 'Diana Prince', class: 'Class 6D', performance: 88, status: 'active' },
   ]);
+
+  const handleCreateClass = async () => {
+    if (!newClassGrade || !newClassSection || !newClassSubject) {
+      alert('Please fill all required fields');
+      return;
+    }
+
+    setSyncStatus('syncing');
+    try {
+      const newClass: ClassData = {
+        id: `class-${Date.now()}`,
+        grade: newClassGrade,
+        section: newClassSection,
+        subject: newClassSubject,
+        teacherUID: user.id
+      };
+
+      // Here you would call your backend API
+      // const response = await fetch('/api/create-class', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(newClass)
+      // });
+
+      // Simulate API call
+      setTimeout(() => {
+        setClasses(prev => [...prev, newClass]);
+        setNewClassGrade('');
+        setNewClassSection('');
+        setNewClassSubject('');
+        setShowCreateClassDialog(false);
+        setSyncStatus('synced');
+      }, 1000);
+    } catch (error) {
+      console.error('Create class failed:', error);
+      setSyncStatus('error');
+    }
+  };
+
+  const handleAddStudent = async () => {
+    if (!selectedClassId || !studentId) {
+      alert('Please select a class and enter student ID');
+      return;
+    }
+
+    setSyncStatus('syncing');
+    try {
+      const addStudentData = {
+        classId: selectedClassId,
+        studentId: studentId
+      };
+
+      // Here you would call your backend API
+      // const response = await fetch('/api/add-student-to-class', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(addStudentData)
+      // });
+
+      // Simulate API call
+      setTimeout(() => {
+        setSelectedClassId('');
+        setStudentId('');
+        setShowAddStudentDialog(false);
+        setSyncStatus('synced');
+        alert(`Student ${studentId} added to class successfully!`);
+      }, 1000);
+    } catch (error) {
+      console.error('Add student failed:', error);
+      setSyncStatus('error');
+    }
+  };
 
   const handleCreateLesson = () => {
     onNavigate('lesson-planner');
@@ -53,6 +161,98 @@ export function TeacherDashboard({ user, onNavigate, onLogout, isDark, setIsDark
 
   const handleCoursePlanner = () => {
     onNavigate('course-planner');
+  };
+
+  const handleUploadCourse = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        setSyncStatus('syncing');
+        try {
+          // Here you would send the file to your backend
+          const formData = new FormData();
+          formData.append('file', file);
+          
+          // Simulated API call - replace with actual backend call
+          // const response = await fetch('/api/upload-course', {
+          //   method: 'POST',
+          //   body: formData
+          // });
+          // const data = await response.json();
+          
+          // For now, simulate a response
+          setTimeout(() => {
+            const mockData = [
+              { topic: 'Introduction to Algebra', duration: '2 weeks' },
+              { topic: 'Linear Equations', duration: '3 weeks' },
+              { topic: 'Quadratic Equations', duration: '2 weeks' },
+              { topic: 'Functions and Graphs', duration: '3 weeks' }
+            ];
+            setCoursePlan(mockData);
+            setSyncStatus('synced');
+          }, 2000);
+        } catch (error) {
+          console.error('Upload failed:', error);
+          setSyncStatus('error');
+        }
+      }
+    };
+    input.click();
+  };
+
+  const handleGenerateCoursePlan = async () => {
+    setIsGeneratingPlan(true);
+    setSyncStatus('syncing');
+    
+    try {
+      // Here you would call your backend API to generate course plan
+      // const response = await fetch('/api/generate-course-plan', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     teacherUID: user.id
+      //   })
+      // });
+      // const data = await response.json();
+      
+      // For now, simulate a response
+      setTimeout(() => {
+        const mockGeneratedPlan = [
+          { topic: 'Fundamentals of Mathematics', duration: '1 week' },
+          { topic: 'Number Systems', duration: '2 weeks' },
+          { topic: 'Basic Operations', duration: '2 weeks' },
+          { topic: 'Fractions and Decimals', duration: '3 weeks' },
+          { topic: 'Geometry Basics', duration: '2 weeks' },
+          { topic: 'Measurement', duration: '2 weeks' }
+        ];
+        setCoursePlan(mockGeneratedPlan);
+        setIsGeneratingPlan(false);
+        setSyncStatus('synced');
+      }, 3000);
+    } catch (error) {
+      console.error('Generation failed:', error);
+      setIsGeneratingPlan(false);
+      setSyncStatus('error');
+    }
+  };
+
+  const handleDownloadCoursePlan = () => {
+    if (coursePlan.length === 0) return;
+    
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Topic,Duration\n"
+      + coursePlan.map(item => `"${item.topic}","${item.duration}"`).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `course_plan_${user.name}_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const menuItems = [
@@ -101,7 +301,6 @@ export function TeacherDashboard({ user, onNavigate, onLogout, isDark, setIsDark
           </Sheet>
           <div>
             <h1 className="text-2xl tracking-tight">VIDYAVĀHINĪ</h1>
-            <p className="text-sm text-muted-foreground">TEACHER DASHBOARD</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -114,54 +313,121 @@ export function TeacherDashboard({ user, onNavigate, onLogout, isDark, setIsDark
         </div>
       </div>
 
-      {/* Welcome Section with Enhanced Dropdowns */}
+      {/* Welcome Section with Class Management Buttons */}
       <div className="mb-6">
-        <h2 className="text-xl mb-2">WELCOME BACK TEACHER</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <Select value={selectedClass} onValueChange={setSelectedClass}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {classes.map((cls) => (
-                <SelectItem key={cls} value={cls}>{cls}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {subjects.map((subject) => (
-                <SelectItem key={subject} value={subject}>{subject}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {levels.map((level) => (
-                <SelectItem key={level} value={level}>{level}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {languages.map((language) => (
-                <SelectItem key={language} value={language}>{language}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <h2 className="text-xl mb-4">WELCOME BACK TEACHER</h2>
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <Dialog open={showCreateClassDialog} onOpenChange={setShowCreateClassDialog}>
+            <DialogTrigger asChild>
+              <Button className="h-16 flex flex-col items-center justify-center gap-2">
+                <School className="w-6 h-6" />
+                <span>Add Class</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Class</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="grade">Grade</Label>
+                  <Select value={newClassGrade} onValueChange={setNewClassGrade}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Grade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {grades.map((grade) => (
+                        <SelectItem key={grade} value={grade}>Grade {grade}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="section">Section</Label>
+                  <Select value={newClassSection} onValueChange={setNewClassSection}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Section" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sections.map((section) => (
+                        <SelectItem key={section} value={section}>Section {section}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="subject">Subject</Label>
+                  <Select value={newClassSubject} onValueChange={setNewClassSubject}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Subject" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subjects.map((subject) => (
+                        <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2 pt-4">
+                  <Button onClick={handleCreateClass} className="flex-1">
+                    Create Class
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowCreateClassDialog(false)} className="flex-1">
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={showAddStudentDialog} onOpenChange={setShowAddStudentDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+                <UserPlus className="w-6 h-6" />
+                <span>Add Student</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Student to Class</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="classId">Select Class</Label>
+                  <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes.map((cls) => (
+                        <SelectItem key={cls.id} value={cls.id}>
+                          Grade {cls.grade}{cls.section} - {cls.subject}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="studentId">Student ID</Label>
+                  <Input
+                    id="studentId"
+                    value={studentId}
+                    onChange={(e) => setStudentId(e.target.value)}
+                    placeholder="Enter Student ID"
+                  />
+                </div>
+                <div className="flex gap-2 pt-4">
+                  <Button onClick={handleAddStudent} className="flex-1">
+                    Add Student
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowAddStudentDialog(false)} className="flex-1">
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
-        <p className="text-sm text-muted-foreground">
-          SUBJECT: {selectedSubject.toUpperCase()} • LEVEL: {selectedLevel.toUpperCase()} • LANGUAGE: {selectedLanguage.toUpperCase()}
-        </p>
       </div>
 
       {/* Main Tabs */}
@@ -206,8 +472,8 @@ export function TeacherDashboard({ user, onNavigate, onLogout, isDark, setIsDark
                 <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
                   <div className="flex items-center gap-4">
-                    <Badge variant="secondary">{selectedClass}</Badge>
-                    <Badge variant="outline">{selectedSubject}</Badge>
+                    <Badge variant="secondary">My Classes</Badge>
+                    <Badge variant="outline">{classes.length} Active</Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -218,7 +484,7 @@ export function TeacherDashboard({ user, onNavigate, onLogout, isDark, setIsDark
                         <div className="flex items-center justify-between p-3 border rounded">
                           <div>
                             <p className="text-sm">Photosynthesis Basics</p>
-                            <p className="text-xs text-muted-foreground">Science • {selectedClass}</p>
+                            <p className="text-xs text-muted-foreground">Science • Grade 6D</p>
                           </div>
                           <div className="flex gap-2">
                             <Badge>published</Badge>
@@ -228,7 +494,7 @@ export function TeacherDashboard({ user, onNavigate, onLogout, isDark, setIsDark
                         <div className="flex items-center justify-between p-3 border rounded">
                           <div>
                             <p className="text-sm">Fractions Introduction</p>
-                            <p className="text-xs text-muted-foreground">Maths • {selectedClass}</p>
+                            <p className="text-xs text-muted-foreground">Maths • Grade 6D</p>
                           </div>
                           <div className="flex gap-2">
                             <Badge variant="secondary">draft</Badge>
@@ -244,7 +510,7 @@ export function TeacherDashboard({ user, onNavigate, onLogout, isDark, setIsDark
                         <div className="flex items-center justify-between p-3 border rounded">
                           <div>
                             <p className="text-sm">Photosynthesis Quiz</p>
-                            <p className="text-xs text-muted-foreground">Science • {selectedClass}</p>
+                            <p className="text-xs text-muted-foreground">Science • Grade 6D</p>
                             <p className="text-xs text-muted-foreground">10 questions • 24 submissions</p>
                           </div>
                           <div className="text-right">
@@ -304,7 +570,7 @@ export function TeacherDashboard({ user, onNavigate, onLogout, isDark, setIsDark
 
               <div className="text-center">
                 <p className="text-sm text-muted-foreground mb-2">Welcome, {user.name}! 👨‍🏫</p>
-                <p className="text-xs text-muted-foreground">Managing {selectedClass} - {selectedSubject}</p>
+                <p className="text-xs text-muted-foreground">Managing {classes.length} classes</p>
               </div>
             </div>
           </div>
@@ -317,66 +583,57 @@ export function TeacherDashboard({ user, onNavigate, onLogout, isDark, setIsDark
                 <h3 className="text-lg">Course Planning</h3>
                 <p className="text-sm text-muted-foreground">Plan and schedule your curriculum</p>
               </div>
-              <Button variant="outline">
+              <Button variant="outline" onClick={handleUploadCourse}>
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Course
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <Button 
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center gap-2"
-              >
-                <Calendar className="w-6 h-6" />
-                <span>Schedule</span>
-              </Button>
-              <Button 
-                variant="outline"
+                onClick={handleGenerateCoursePlan}
+                disabled={isGeneratingPlan}
                 className="h-20 flex flex-col items-center justify-center gap-2"
               >
                 <Plus className="w-6 h-6" />
-                <span>Generate Next Plan</span>
+                <span>{isGeneratingPlan ? 'Generating...' : 'Generate Course Plan'}</span>
               </Button>
               <Button 
                 variant="outline"
                 className="h-20 flex flex-col items-center justify-center gap-2"
               >
-                <FileText className="w-6 h-6" />
-                <span>Mock Test Papers</span>
-              </Button>
-              <Button 
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center gap-2"
-              >
-                <BookOpen className="w-6 h-6" />
+                <Edit className="w-6 h-6" />
                 <span>Edit Course Plan</span>
               </Button>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Current Course Plan</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <p className="font-medium">Week 1-2</p>
-                      <p className="text-muted-foreground">Photosynthesis & Plant Biology</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Week 3-4</p>
-                      <p className="text-muted-foreground">Respiration & Circulation</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Week 5-6</p>
-                      <p className="text-muted-foreground">Light & Shadow Physics</p>
-                    </div>
+            {coursePlan.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Generated Course Plan</CardTitle>
+                    <Button variant="outline" size="sm" onClick={handleDownloadCoursePlan}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-4 font-semibold text-sm border-b pb-2">
+                      <div>Topic</div>
+                      <div>Duration</div>
+                    </div>
+                    {coursePlan.map((item, index) => (
+                      <div key={index} className="grid grid-cols-2 gap-4 text-sm py-2 border-b last:border-b-0">
+                        <div>{item.topic}</div>
+                        <div>{item.duration}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
       </Tabs>

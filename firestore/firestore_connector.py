@@ -1,7 +1,3 @@
-from firebase_admin import credentials, firestore, initialize_app
-import os
+from firestore_config import db, auth
 
-# Initialize the app with the default credentials from env variable
-initialize_app()
-
-db = firestore.client()
+__all__ = ["db", "auth"]

@@ -124,6 +124,60 @@ app.include_router(
 from fastapi import APIRouter, Header
 from pydantic import BaseModel
 
+class UserRegister(BaseModel):
+    email: str
+    password: str
+    role: str  # "student" or "teacher"
+    user_data: dict
+
+class ClassCreate(BaseModel):
+    class_id: str
+    class_data: dict
+    teacher_uid: str
+    subject: str
+
+class AddStudent(BaseModel):
+    class_id: str
+    student_id: str
+
+class QuizPost(BaseModel):
+    teacher_uid: str
+    class_id: str
+    subject: str
+    quiz_data: dict
+
+@app.post("/register")
+def register(user: UserRegister):
+    try:
+        user_id = register_user(user.email, user.password, user.role, user.user_data)
+        return {"message": "User registered", "uid": user_id}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/class/create")
+def create_class_endpoint(cls: ClassCreate):
+    try:
+        create_class(cls.class_id, cls.class_data, cls.teacher_uid, cls.subject)
+        return {"message": "Class created"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/class/add-student")
+def add_student(cls: AddStudent):
+    try:
+        add_student_to_class(cls.class_id, cls.student_id)
+        return {"message": "Student added to class"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/quiz/post")
+def post_quiz(q: QuizPost):
+    try:
+        post_quiz_result(q.teacher_uid, q.class_id, q.subject, q.quiz_data)
+        return {"message": "Quiz posted to class"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 class CoursePlannerInput(BaseModel):
     current_topic: str
     quiz_score: int
@@ -280,20 +334,7 @@ def get_allowed_agents(user_role: str, user_level: Optional[int]):
         # "gamification_agent", 
     }
 
-    if user_role == "teacher":
-        return teacher_agents
-    elif user_role == "student":
-        if user_level is None:
-            # If no level provided, restrict to basic agents only
-            return basic_agents
-        elif user_level <= 10:
-            return basic_agents
-        else:
-            # Mid-level students get basic + mid_agents
-            return basic_agents.union(mid_agents)
-    else:
-        # Unknown role: no access
-        return set()
+    
 
 
 @app.post("/manage-content")
