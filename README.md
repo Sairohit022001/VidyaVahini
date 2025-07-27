@@ -36,6 +36,7 @@ VidyaVāhinī is an AI-driven educational platform designed to deliver structure
 - **Firebase Auth (optional)**
 
 ---
+![WhatsApp Image 2025-07-27 at 07 09 16_6accf28b](https://github.com/user-attachments/assets/24aaabe4-8411-4935-b28b-d90836c1137f)
 
 ## 📂 Project Structure
 
