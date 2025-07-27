@@ -72,7 +72,7 @@ This project is licensed under the MIT License.
 
 👥 Contributors
 
-Rohi - AI Pipelines
+Rohit - AI Pipelines
 
 Deepanshi – Frontend/Backend
 
