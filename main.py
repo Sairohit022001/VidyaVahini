@@ -22,7 +22,7 @@ from contextlib import asynccontextmanager
 
  
 from agents.lesson_planner_agent import lesson_planner_agent
-from agents.story_teller_agent import story_teller_agent
+from agents.story_teller_agent import run_story_teller_agent
 from agents.quiz_agent import quiz_agent
 from agents.sync_agent import sync_agent
 from agents.course_planner_agent import course_planner_agent
@@ -249,7 +249,7 @@ global_memory = LocalMemoryHandler(
 vidyavahini_crew = Crew(
     agents=[
         lesson_planner_agent,
-        story_teller_agent,
+        run_story_teller_agent,
         quiz_agent,
         sync_agent,
         course_planner_agent,
@@ -370,7 +370,7 @@ async def manage_content(request: Request):
 # Helper to map agent instance names to their string keys used above
 agent_instance_to_name = {
     lesson_planner_agent: "lesson_planner_agent",
-    story_teller_agent: "story_teller_agent",
+    run_story_teller_agent: "run_story_teller_agent",
     quiz_agent: "quiz_agent",
     sync_agent: "sync_agent",
     course_planner_agent: "course_planner_agent",
@@ -388,7 +388,7 @@ agent_instance_to_name = {
 # Dictionary mapping endpoint suffixes to agents (same as before)
 agent_endpoints = {
     "lesson_planner": lesson_planner_agent,
-    "story_teller": story_teller_agent,
+    "run_story_teller_agent": run_story_teller_agent,
     "quiz": quiz_agent,
     "sync": sync_agent,
     "course_planner": course_planner_agent,
@@ -450,7 +450,7 @@ for endpoint_name, agent in agent_endpoints.items():
         response_model=CrewResponse,
         dependencies=[Depends(verify_api_key)],
         tags=["Agents"],
-        summary=f"Run {agent.name} agent"
+        summary=f"Run {endpoint_name} agent"
     )(create_agent_endpoint(agent, endpoint_name))
 
 app.include_router(api_router)
@@ -675,57 +675,98 @@ def handle_shutdown(signum, frame):
 signal.signal(signal.SIGINT, handle_shutdown)
 signal.signal(signal.SIGTERM, handle_shutdown)
 
-# CLI runner for manual testing
+# CLI runner for manual testing with detailed prompts and comments
 async def main():
     test_prompt = "Prepare a summary lesson plan on photosynthesis for Grade 7."
     logger.info("Starting VidyaVāhinī Crew CLI run...")
+
     try:
-        # Example of providing more complete inputs for a lesson planning scenario
+        # Complete and detailed inputs for different agents in the crew
         inputs = {
+            # Core topic details for lesson planning
             "topic": "Photosynthesis",
-            "level": "7", # Use "level" instead of "grade" for consistency with LessonPlannerAgent
-            "dialect": "Telangana",
-            "prompt": "Explain photosynthesis for grade 7 students in Telangana dialect.", # Add prompt here
-            # Add other potential inputs needed by agents in the crew
-            # based on their add_input declarations and task requirements
-            # Example for StoryTellerAgent (requires lesson_plan_json):
+            "level": "7",  # Grade level, matching LessonPlannerAgent's expected key
+            "dialect": "Telangana",  # Regional dialect for culturally relevant explanations
+            
+            # Specific prompt for the lesson planner agent to generate an age & dialect-appropriate lesson plan
+            "prompt": (
+                "Create a detailed lesson plan explaining photosynthesis for grade 7 students "
+                "speaking the Telangana dialect. Include introduction, key concepts, examples, "
+                "and a summary adapted to local cultural context."
+            ),
+
+            # Lesson plan JSON structure example for agents that consume lesson data (e.g., StoryTellerAgent, QuizAgent)
             "lesson_plan_json": {
                 "title": "The Magical Process of Photosynthesis",
                 "sections": [
-                    {"heading": "Introduction", "content": "Brief intro to photosynthesis."},
-                    {"heading": "What is Needed?", "content": "Sunlight, water, CO2."},
-                    {"heading": "The Process", "content": "How plants make food."},
-                    {"heading": "Importance", "content": "Why photosynthesis is important."}
+                    {"heading": "Introduction", "content": "A brief introduction to the process of photosynthesis."},
+                    {"heading": "What is Needed?", "content": "Sunlight, water, and carbon dioxide are essential for photosynthesis."},
+                    {"heading": "The Process", "content": "Plants convert sunlight into energy by making food through photosynthesis."},
+                    {"heading": "Importance", "content": "Photosynthesis is vital because it provides oxygen and energy for life."}
                 ]
             },
-            # Example for QuizAgent (requires lesson_plan_json, story_body, or audio_data):
-            "story_body": "A short story about a plant making food.",
-            # Example for TeacherDashboardAgent (requires quiz_data, student_levels, predictive_data):
-            "quiz_data": {"total_students": 10, "completed_quizzes": 8, "results": []}, # Example structure, provide empty list
-            "student_levels": {}, # Example structure, provide empty dict
-            "predictive_data": {}, # Example structure, provide empty dict
-            # Example for StudentLevelAnalyticsAgent (requires student_id, quiz_results, interaction_data):
-            "student_id": "student123",
-            "quiz_results": [], # Example structure, provide empty list
-            "interaction_data": {}, # Example structure, provide empty dict
-            # Example for ContentCreatorAgent (requires lesson_plan_json, story_body, visual_prompts):
-            "visual_prompts": [], # Example structure, provide empty list
-            # Example for MultimodalResearchAgent (requires topic, grade, context_from_doc):
-            # topic, grade, dialect are already included above
-            "context_from_doc": {}, # Example structure, provide empty dict
-            # Example for PredictiveAnalyticsAgent (requires quiz_results):
-            # quiz_results is already included above
-            # Example for VisualAgent (requires lesson_plan_json, story_text, dialect):
-            "story_text": "A story related to photosynthesis."
 
+            # Example story text for StoryTellerAgent
+            "story_body": (
+                "Once upon a time, there was a little plant who learned how to make food using sunlight, water, and air. "
+                "This amazing process is called photosynthesis."
+            ),
+
+            # Quiz data placeholder for TeacherDashboardAgent and PredictiveAnalyticsAgent
+            "quiz_data": {
+                "total_students": 30,
+                "completed_quizzes": 25,
+                "results": [
+                    # Example student quiz result objects can be placed here
+                ]
+            },
+
+            # Student levels placeholder (can be populated with student proficiency data)
+            "student_levels": {
+                # e.g., "student123": "Intermediate"
+            },
+
+            # Predictive analytics data placeholder
+            "predictive_data": {
+                # e.g., predictions or trends data
+            },
+
+            # Student-specific data for StudentLevelAnalyticsAgent
+            "student_id": "student123",
+            "quiz_results": [
+                # Example quiz attempt records
+            ],
+            "interaction_data": {
+                # Example student interaction logs or analytics
+            },
+
+            # Visual prompts for ContentCreatorAgent for image or visual content generation
+            "visual_prompts": [
+                "Diagram of photosynthesis cycle",
+                "Sunlight shining on green leaves"
+            ],
+
+            # Additional research context for MultimodalResearchAgent
+            "context_from_doc": {
+                # e.g., text snippets or document data related to photosynthesis
+            },
+
+            # Text for VisualAgent to generate visuals or stories with dialect adaptation
+            "story_text": "A captivating story highlighting the wonder of photosynthesis in nature.",
+
+            # Other optional inputs as needed by agents can be added here
         }
 
+        # Run the crew with prepared inputs
         result = await vidyavahini_crew.run(inputs=inputs)
-        logger.info("CLI run result:") 
-        logger.info(f"{result}") 
+
+        logger.info("CLI run result:")
+        logger.info(f"{result}")
+
     except Exception as e:
         logger.error(f"Error running crew in CLI: {e}")
-        return result
+        return None
+
 
 if __name__ == "__main__":
     asyncio.run(main())

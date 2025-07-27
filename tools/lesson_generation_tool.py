@@ -30,12 +30,13 @@ class LessonGenerationTool:
 
     def clean_llm_json_output(self, raw_text: str) -> str:
         # Remove markdown code fences (```json or ```)
-        cleaned = re.sub(r'^```json\s*', '', raw_text.strip())
-        cleaned = re.sub(r'^```\s*', '', cleaned)
+        cleaned = re.sub(r'^```jsons*', '', raw_text.strip())
+        cleaned = re.sub(r'^```s*', '', cleaned)
         cleaned = re.sub(r'```$', '', cleaned.strip())
 
         # Remove any invisible unicode chars - optional (here using ascii-only)
-        cleaned = cleaned.encode('ascii', 'ignore').decode('ascii')
+        # Removed the ASCII encoding/decoding line
+        # cleaned = cleaned.encode('ascii', 'ignore').decode('ascii')
 
         return cleaned
 
@@ -47,7 +48,9 @@ class LessonGenerationTool:
         grade = inputs.get("grade", "")  # Default empty string if missing
 
         prompt = self.prompt_template.format(topic=topic, level=level, dialect=dialect, grade=grade)
-        logger.info("📌 Prompt sent to Gemini:\n%s", prompt)
+        # Corrected the f-string to use triple quotes
+        logger.info("""📌 Prompt sent to Gemini:
+%s""", prompt)
 
         if not prompt.strip():
             logger.error("❌ Generated prompt is empty. Cannot send to LLM.")
@@ -63,10 +66,13 @@ class LessonGenerationTool:
             logger.debug(f"LLM raw result object: {result}")
 
             response_text = result.content.strip() if hasattr(result, "content") else str(result).strip()
-            logger.debug(f"LLM response_text: {response_text}")
+            # Corrected the f-string to use triple quotes
+            logger.debug(f"""LLM response_text: {response_text}""")
 
             cleaned_text = self.clean_llm_json_output(response_text)
-            logger.debug(f"Cleaned LLM output before JSON parse:\n{cleaned_text}")
+            # Corrected the f-string to use triple quotes
+            logger.debug(f"""Cleaned LLM output before JSON parse:
+{cleaned_text}""")
 
             parsed = json.loads(cleaned_text)
 
@@ -74,7 +80,9 @@ class LessonGenerationTool:
             return parsed
 
         except json.JSONDecodeError:
-            logger.error("❌ JSON decoding failed. Raw output:\n%s", result.content if hasattr(result, "content") else str(result))
+            # Corrected the f-string to use triple quotes
+            logger.error("""❌ JSON decoding failed. Raw output:
+%s""", result.content if hasattr(result, "content") else str(result))
             return {
                 "error": "Invalid JSON response from LLM.",
                 "raw_response": result.content if hasattr(result, "content") else str(result)

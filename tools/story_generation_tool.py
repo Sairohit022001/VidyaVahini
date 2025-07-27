@@ -26,11 +26,12 @@ class StoryGenerationTool:
 
     def clean_llm_json_output(self, raw_text: str) -> str:
         # Strip markdown code fences like ```json and ```
-        cleaned = re.sub(r'^```json\s*', '', raw_text.strip())
-        cleaned = re.sub(r'^```\s*', '', cleaned)
+        cleaned = re.sub(r'^```jsons*', '', raw_text.strip())
+        cleaned = re.sub(r'^```s*', '', cleaned)
         cleaned = re.sub(r'```$', '', cleaned.strip())
         # Optional: remove invisible unicode chars
-        cleaned = cleaned.encode('ascii', 'ignore').decode('ascii')
+        # Removed the ASCII encoding/decoding line
+        # cleaned = cleaned.encode('ascii', 'ignore').decode('ascii')
         return cleaned
 
     @retry_with_backoff(retries=3, delay=2)
@@ -45,21 +46,26 @@ class StoryGenerationTool:
             result = self.llm.invoke(prompt)
             raw_response = result.content.strip()
             cleaned_response = self.clean_llm_json_output(raw_response)
-            parsed = json.loads(cleaned_response)
 
-            logger.info(f"✅ Story generated for topic: {topic}")
-            return parsed
+            try:
+                parsed = json.loads(cleaned_response)
+                logger.info(f"✅ Story generated for topic: {topic}")
+                return parsed
 
-        except json.JSONDecodeError:
-            logger.error("❌ Invalid JSON in story output")
-            logger.error(f"Raw response: {raw_response}")
-            return {
-                "error": "Story generation failed due to invalid JSON.",
-                "raw_response": raw_response
-            }
+            except json.JSONDecodeError as e:
+                logger.error(f"❌ JSONDecodeError in story output: {e}")
+                logger.error(f"Raw response: {raw_response}")
+                # Return a structured error response that includes the problematic raw_response
+                return {
+                    "error": "Story generation failed due to invalid JSON output from LLM.",
+                    "details": str(e),
+                    "raw_response": raw_response # Include raw response for debugging
+                }
+
         except Exception as e:
             logger.exception("🚨 Story generation failed")
+            # Return a structured error response for other exceptions
             return {
-                "error": "Unexpected failure",
+                "error": "Unexpected failure during story generation.",
                 "details": str(e)
             }

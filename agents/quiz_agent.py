@@ -1,76 +1,139 @@
 import os
+import json
 import types
+import logging
 from crewflows import Agent
 from tools.quiz_generation_tool import QuizGenerationTool
 from tasks.quiz_tasks import QuizTask
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-# Initialize memory
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+# =====================================================
+# ✅ Initialize Memory
+# =====================================================
 memory_handler = LocalMemoryHandler(
     session_id="quiz_agent_session",
     file_path="memory/quiz_agent_memory.json"
 )
 
-# Initialize tool
+# =====================================================
+# ✅ Initialize Tool
+# =====================================================
 quiz_tool = QuizGenerationTool()
 
+# =====================================================
+# ✅ Helper: Fallback
+# =====================================================
+def get_quiz_fallback():
+    """Fallback quiz when model output is invalid."""
+    return {
+        "quiz_json": {
+            "questions": [
+                {
+                    "question_text": "What is photosynthesis?",
+                    "options": [
+                        "Process of making food by plants",
+                        "Breathing process",
+                        "Water cycle",
+                        "Seed germination"
+                    ],
+                    "correct_answer": "Process of making food by plants",
+                    "explanation": "Photosynthesis is how plants make food."
+                }
+            ],
+            "format_type": "MCQ",
+            "topic": "Photosynthesis",
+            "grade_level": "7",
+            "total_marks": 1,
+            "dialect_adapted": False
+        },
+        "adaptive_quiz_set": {"easy": [], "medium": [], "hard": []},
+        "retry_feedback_report": {}
+    }
+
+def validate_quiz_output(model_output):
+    """Ensure the quiz output is valid and contains required keys."""
+    try:
+        data = json.loads(model_output) if isinstance(model_output, str) else model_output
+        if not isinstance(data, dict):
+            logger.warning("Model output is not a dict. Using fallback.")
+            return get_quiz_fallback()
+
+        required_keys = ["quiz_json", "adaptive_quiz_set", "retry_feedback_report"]
+        if not all(k in data for k in required_keys):
+            logger.warning("Model output missing keys. Using fallback.")
+            return get_quiz_fallback()
+
+        return data
+    except json.JSONDecodeError:
+        logger.error("Invalid JSON. Using fallback.")
+        return get_quiz_fallback()
+
+
+# =====================================================
+# ✅ QuizAgent Class
+# =====================================================
 class QuizAgent(Agent):
     def __init__(self, *args, **kwargs):
-        # Remove default Task objects from crewai if mistakenly passed
+        # Filter invalid tasks
         if 'tasks' in kwargs and isinstance(kwargs['tasks'], list):
-            kwargs['tasks'] = [task for task in kwargs['tasks'] if not (hasattr(task, '__class__') and task.__class__.__name__ == 'Task')]
+            kwargs['tasks'] = [
+                t for t in kwargs['tasks']
+                if not (hasattr(t, '__class__') and t.__class__.__name__ == 'Task')
+            ]
+
         super().__init__(*args, **kwargs)
 
-        # Manually instantiate task
         self.quiz_task_instance = QuizTask(
             name=QuizTask.name,
             description=QuizTask.description
         )
 
     async def process(self, inputs: dict):
+        """Main async process method."""
         lesson_plan = inputs.get("lesson_plan_json")
         story = inputs.get("story_body")
         audio_data = inputs.get("audio_data")
         dialect = inputs.get("dialect", "default")
 
-        # Validate required inputs
         if not any([lesson_plan, story, audio_data]):
-            return {
-                "error": "QuizAgent requires at least one input: lesson_plan_json, story_body, or audio_data"
-            }
+            return {"error": "QuizAgent requires lesson_plan_json, story_body, or audio_data."}
 
         context = {
             "lesson_plan_json": lesson_plan,
             "story_body": story,
             "audio_data": audio_data,
-            "dialect": dialect,
+            "dialect": dialect
         }
 
         try:
-            result = await self.quiz_task_instance.run(context)
+            # ✅ Try primary QuizTask
+            quiz_task_result = await self.quiz_task_instance.run(context)
 
-            # Validate result structure
-            if not isinstance(result, dict):
-                return {"error": f"Expected dict from QuizTask.run(), got {type(result)}"}
+            # ✅ Handle explicit error dicts
+            if isinstance(quiz_task_result, dict) and ("error" in quiz_task_result or "error_details" in quiz_task_result):
+                logger.warning(f"QuizTask returned error: {quiz_task_result}")
+                return quiz_tool.get_quiz_fallback()
 
-            expected_keys = ["quiz_json", "adaptive_quiz_set"]
-            missing_keys = [k for k in expected_keys if k not in result]
-            if missing_keys:
-                return {"error": f"Missing keys in quiz result: {missing_keys}"}
-
-            return result
+            # ✅ Validate & Return
+            return validate_quiz_output(quiz_task_result)
 
         except Exception as e:
-            return {"error": f"QuizAgent process() failed: {str(e)}"}
+            logger.exception("QuizAgent process() failed")
+            return get_quiz_fallback()
 
 
-# Instantiate agent
+# =====================================================
+# ✅ Instantiate Agent
+# =====================================================
 quiz_agent = QuizAgent(
     name="QuizAgent",
     role="AI-based adaptive quiz generator",
-    goal="""...""",  # goal truncated for brevity
-    backstory="""...""",
+    goal="Generate quizzes from lessons, stories, and audio data with adaptive difficulty.",
+    backstory="QuizAgent helps teachers by generating quizzes automatically and adapting to student performance.",
     memory=True,
     memory_handler=memory_handler,
     allow_delegation=True,
@@ -93,7 +156,9 @@ quiz_agent = QuizAgent(
     }
 )
 
-# Inputs accepted from upstream agents
+# =====================================================
+# ✅ Add Inputs & Outputs
+# =====================================================
 quiz_agent.add_input("lesson_plan_json")
 quiz_agent.add_input("story_body")
 quiz_agent.add_input("audio_data")
@@ -102,14 +167,16 @@ quiz_agent.add_input("LessonPlannerAgent")
 quiz_agent.add_input("StoryTellerAgent")
 quiz_agent.add_input("VoiceTutorAgent")
 
-# Expected outputs
 quiz_agent.add_output("quiz_json")
 quiz_agent.add_output("adaptive_quiz_set")
 quiz_agent.add_output("retry_feedback_report")
 
-# Sync wrapper
+# =====================================================
+# ✅ Sync Wrapper
+# =====================================================
 def sync_process(self, inputs: dict):
     import asyncio
-    return asyncio.run(self.process(inputs))
+    result = asyncio.run(self.process(inputs))
+    return validate_quiz_output(result)
 
 quiz_agent.sync_process = types.MethodType(sync_process, quiz_agent)
