@@ -40,25 +40,7 @@ VidyaVāhinī is an AI-driven educational platform designed to deliver structure
 ## 📂 Project Structure
 
 
-📄 ├── app.yaml
-📄 ├── Audio 
-📄 ├── dev.nixM-A
-📄 ├── docker-compose.yml
-📄 ├── Dockerfile 
-📄 ├── list_models.py 
-📄 ├── main.py
-📄 ├── package.json
-📄 ├── package-lock.json
-📄 ├── payload.json
-📄 ├── pytest.ini
-📄 ├── README.md
-📄 ├── requirements.txt
-📄 ├── telangana_dialect_map.json
-📄 ├── test_voice_tutor.py
-📄 ├── vidyavahini-firebase-adminsdk-fbsvc-9fe1f5320e.json
-📄 ├── voice_tutor_output_andhra.mp3
-📄 └── voice_tutor_output_Telangana.mp3
-
+├── agents ├── app.yaml ├── crewflows ├── docker-compose.yml ├── Dockerfile ├── firestore ├── frontend ├── keys ├── list_models.py ├── llms ├── main.py ├── node_modules ├── package.json ├── payload.json ├── pycache ├── pytest.ini ├── README.md ├── requirements.txt ├── routes ├── tasks ├── telangana_dialect_map.json ├── test ├── tests ├── test_voice_tutor.py ├── tools ├── venv ├── vidyavahinifirebase ├── voice_tutor_output_andhra.mp3 └── voice_tutor_output_Telangana.mp3
 ---
 
 ## ⚙️ Installation & Setup
