@@ -3,110 +3,110 @@ from firestore.firebase_config import db
 # use db here...
 
 
-# ------------------------------------------
-# User Profile Firestore Operations
-# ------------------------------------------
+# # ------------------------------------------
+# # User Profile Firestore Operations
+# # ------------------------------------------
 
-def create_user_profile(user_id: str, user_data: dict):
-    """
-    Create a new user profile document in Firestore.
+# def create_user_profile(user_id: str, user_data: dict):
+#     """
+#     Create a new user profile document in Firestore.
     
-    Args:
-        user_id (str): Unique user identifier (e.g., Firebase Auth UID)
-        user_data (dict): Dictionary of user profile data (name, email, role, etc.)
-    """
-    user_ref = db.collection("users").document(user_id)
-    user_ref.set({
-        **user_data,
-        "created_at": firestore.SERVER_TIMESTAMP
-    })
-    print(f"[Firestore] Created user profile for user_id: {user_id}")
+#     Args:
+#         user_id (str): Unique user identifier (e.g., Firebase Auth UID)
+#         user_data (dict): Dictionary of user profile data (name, email, role, etc.)
+#     """
+#     user_ref = db.collection("users").document(user_id)
+#     user_ref.set({
+#         **user_data,
+#         "created_at": firestore.SERVER_TIMESTAMP
+#     })
+#     print(f"[Firestore] Created user profile for user_id: {user_id}")
 
-def get_user_profile(user_id: str) -> dict | None:
-    """
-    Retrieve a user profile document by user_id.
+# def get_user_profile(user_id: str) -> dict | None:
+#     """
+#     Retrieve a user profile document by user_id.
     
-    Args:
-        user_id (str): Unique user identifier
+#     Args:
+#         user_id (str): Unique user identifier
         
-    Returns:
-        dict or None: User profile data if exists, else None
-    """
-    user_ref = db.collection("users").document(user_id)
-    doc = user_ref.get()
-    if doc.exists:
-        print(f"[Firestore] Retrieved user profile for user_id: {user_id}")
-        return doc.to_dict()
-    else:
-        print(f"[Firestore] No user profile found for user_id: {user_id}")
-        return None
+#     Returns:
+#         dict or None: User profile data if exists, else None
+#     """
+#     user_ref = db.collection("users").document(user_id)
+#     doc = user_ref.get()
+#     if doc.exists:
+#         print(f"[Firestore] Retrieved user profile for user_id: {user_id}")
+#         return doc.to_dict()
+#     else:
+#         print(f"[Firestore] No user profile found for user_id: {user_id}")
+#         return None
 
-def update_user_profile(user_id: str, updates: dict):
-    """
-    Update fields in an existing user profile document.
+# def update_user_profile(user_id: str, updates: dict):
+#     """
+#     Update fields in an existing user profile document.
     
-    Args:
-        user_id (str): Unique user identifier
-        updates (dict): Dictionary of fields to update and their new values
-    """
-    user_ref = db.collection("users").document(user_id)
-    user_ref.update(updates)
-    print(f"[Firestore] Updated user profile for user_id: {user_id} with fields: {list(updates.keys())}")
+#     Args:
+#         user_id (str): Unique user identifier
+#         updates (dict): Dictionary of fields to update and their new values
+#     """
+#     user_ref = db.collection("users").document(user_id)
+#     user_ref.update(updates)
+#     print(f"[Firestore] Updated user profile for user_id: {user_id} with fields: {list(updates.keys())}")
 
-def delete_user_profile(user_id: str):
-    """
-    Delete a user profile document from Firestore.
+# def delete_user_profile(user_id: str):
+#     """
+#     Delete a user profile document from Firestore.
     
-    Args:
-        user_id (str): Unique user identifier
-    """
-    user_ref = db.collection("users").document(user_id)
-    user_ref.delete()
-    print(f"[Firestore] Deleted user profile for user_id: {user_id}")
+#     Args:
+#         user_id (str): Unique user identifier
+#     """
+#     user_ref = db.collection("users").document(user_id)
+#     user_ref.delete()
+#     print(f"[Firestore] Deleted user profile for user_id: {user_id}")
 
-def user_exists(user_id: str) -> bool:
-    """
-    Check if a user profile exists in Firestore.
+# def user_exists(user_id: str) -> bool:
+#     """
+#     Check if a user profile exists in Firestore.
     
-    Args:
-        user_id (str): Unique user identifier
+#     Args:
+#         user_id (str): Unique user identifier
         
-    Returns:
-        bool: True if user exists, False otherwise
-    """
-    user_ref = db.collection("users").document(user_id)
-    exists = user_ref.get().exists
-    print(f"[Firestore] User exists check for user_id: {user_id} = {exists}")
-    return exists
+#     Returns:
+#         bool: True if user exists, False otherwise
+#     """
+#     user_ref = db.collection("users").document(user_id)
+#     exists = user_ref.get().exists
+#     print(f"[Firestore] User exists check for user_id: {user_id} = {exists}")
+#     return exists
 
-def get_users_by_role(role: str) -> list[dict]:
-    """
-    Query and retrieve all user profiles with a specific role.
+# def get_users_by_role(role: str) -> list[dict]:
+#     """
+#     Query and retrieve all user profiles with a specific role.
     
-    Args:
-        role (str): Role to filter users by (e.g., 'student', 'teacher')
+#     Args:
+#         role (str): Role to filter users by (e.g., 'student', 'teacher')
         
-    Returns:
-        List[dict]: List of user profiles matching the role
-    """
-    users_ref = db.collection("users")
-    query = users_ref.where("role", "==", role)
-    docs = query.stream()
-    users = [doc.to_dict() for doc in docs]
-    print(f"[Firestore] Retrieved {len(users)} users with role '{role}'")
-    return users
+#     Returns:
+#         List[dict]: List of user profiles matching the role
+#     """
+#     users_ref = db.collection("users")
+#     query = users_ref.where("role", "==", role)
+#     docs = query.stream()
+#     users = [doc.to_dict() for doc in docs]
+#     print(f"[Firestore] Retrieved {len(users)} users with role '{role}'")
+#     return users
 
-def update_user_settings(user_id: str, settings: dict):
-    """
-    Update or add nested 'settings' field inside a user profile document.
+# def update_user_settings(user_id: str, settings: dict):
+#     """
+#     Update or add nested 'settings' field inside a user profile document.
     
-    Args:
-        user_id (str): Unique user identifier
-        settings (dict): Dictionary of settings/preferences to save
-    """
-    user_ref = db.collection("users").document(user_id)
-    user_ref.update({"settings": settings})
-    print(f"[Firestore] Updated settings for user_id: {user_id}")
+#     Args:
+#         user_id (str): Unique user identifier
+#         settings (dict): Dictionary of settings/preferences to save
+#     """
+#     user_ref = db.collection("users").document(user_id)
+#     user_ref.update({"settings": settings})
+#     print(f"[Firestore] Updated settings for user_id: {user_id}")
 
 
 
