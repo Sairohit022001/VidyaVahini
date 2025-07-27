@@ -1,6 +1,6 @@
 # VidyaVāhinī
 
-> **A Multilingual, Multimodal, Offline-First Education Platform powered by Agentic AI**
+> **A Multilingual, Multimodal Education Platform powered by Agentic AI**
 
 VidyaVāhinī is an AI-driven educational platform designed to deliver structured lessons, interactive quizzes, and voice-based tutoring across multiple Indian languages and dialects. It integrates advanced AI agents, offline-first architecture, and regional adaptation for personalized learning experiences.
 
