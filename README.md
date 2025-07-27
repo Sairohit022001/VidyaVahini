@@ -1,34 +1,120 @@
-
 # VidyaVāhinī
 
-## Project Overview
-VidyaVāhinī is an offline-first, multilingual, multimodal education platform powered by AI agents, designed to empower teachers and students in multi-grade classrooms with personalized lessons, quizzes, and voice-enabled regional dialect support.
+> **A Multilingual, Multimodal, Offline-First Education Platform powered by Agentic AI**
 
-## Team Agentronauts
+VidyaVāhinī is an AI-driven educational platform designed to deliver structured lessons, interactive quizzes, and voice-based tutoring across multiple Indian languages and dialects. It integrates advanced AI agents, offline-first architecture, and regional adaptation for personalized learning experiences.
 
-| Member    | LinkedIn                                      |
-|-----------|-----------------------------------------------|
-| Sairohith Bukka      | [LinkedIn](https://www.linkedin.com/in/sairohithbukka/) |
-| Nanditha Vuppunuthula |               [LinkedIn](https://www.linkedin.com/in/nandithav/)        |
-| Srujana Jasmine Komarabathina  | [LinkedIn](https://www.linkedin.com/in/srujana-jasmine-komarabathina-4234a423a/) |
-| Deepanshi Bansal  | [LinkedIn](https://www.linkedin.com/in/deepanshi-bansal2002/) |
-| Amritha S | [LinkedIn](https://www.linkedin.com/in/amritha-s-oo/) |
+---
 
-## Project Goals
-- Develop an AI-driven lesson planner generating rich educational content.
-- Generate quizzes based on lesson content for student assessment.
-- Enable multilingual and dialect-sensitive voice output.
-- Support offline mode with local data caching and cloud sync.
-- Provide teacher dashboards for course planning and progress tracking.
+## 🚀 Features
 
-## Repository Structure
-- /frontend - React + Tailwind frontend application
-- /backend - FastAPI backend server with AI agent APIs
-- /agents - Agent prompt templates and logic
-- /utils - Shared utilities and helpers
-- /docs - Project documentation and design artifacts
+- **Agentic AI Architecture** – Modular agent-task-tool design.
+- **Lesson Generation** – Topic-wise structured lessons (concepts, research references, summaries, and practice Q&A).
+- **BhāṣāGuru Agent** – Regional dialect clustering, SSML prosody handling, and Google Cloud TTS voice synthesis.
+- **Quiz & Assessment Engine** – Dynamic quiz creation aligned with student level and curriculum.
+- **Offline-First Support** – IndexedDB + Firestore synchronization.
+- **Multilingual Support** – Telugu (Andhra/Telangana), Hindi, English, and more.
+- **Teacher & Student Dashboards** – Role-based analytics and content management.
+- **FastAPI Backend + React Frontend** – Scalable architecture for production.
+- **GCP Integration** – Google Cloud Text-to-Speech, Cloud Build, Artifact Registry.
 
-## Branches
-- main - Production-ready stable code
-- dev - Active development branch
+---
 
+## 🛠️ Tech Stack
+
+### Backend
+- **FastAPI** (Python)
+- **CrewAI** for agent orchestration
+- **Google Cloud TTS**
+- **Firestore**
+- **Docker**
+
+### Frontend
+- **React (TypeScript)**
+- **TailwindCSS**
+- **IndexedDB for offline sync**
+- **Firebase Auth (optional)**
+
+---
+
+## 📂 Project Structure
+
+├── agents
+├── app.yaml
+├── Audio
+├── base
+├── crewflows
+├── dev.nixM-A
+├── docker-compose.yml
+├── Dockerfile
+├── firestore
+├── frontend
+├── functions
+├── generated_audio
+├── keys
+├── list_models.py
+├── llms
+├── main.py
+├── memory
+├── node_modules
+├── package.json
+├── package-lock.json
+├── payload.json
+├── __pycache__
+├── pytest.ini
+├── README.md
+├── requirements.txt
+├── routes
+├── tasks
+├── telangana_dialect_map.json
+├── test
+├── tests
+├── test_voice_tutor.py
+├── tools
+├── venv
+├── vidyavahinifirebase
+├── voice_tutor_output_andhra.mp3
+└── voice_tutor_output_Telangana.mp3
+
+
+
+---
+
+## ⚙️ Installation & Setup
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/<your-username>/VidyaVahini.git
+cd VidyaVahini
+
+
+### 2. Backend Setup
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+export GOOGLE_APPLICATION_CREDENTIALS="path/to/vidyavahini-tts-27ed6a33108a.json"
+uvicorn app:app --reload
+
+
+### 3. Frontend Setup
+cd frontend
+npm install
+npm run dev
+
+
+
+📜 License
+This project is licensed under the MIT License.
+
+👥 Contributors
+
+Rohi - AI Pipelines
+
+Deepanshi – Frontend/Backend
+
+Nanditha – Backend
+
+Amritha – Frontend
+
+Srujana – AI Pipelines
