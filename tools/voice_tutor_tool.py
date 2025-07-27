@@ -1,99 +1,50 @@
 import os
-import base64
-from tempfile import NamedTemporaryFile
+import uuid
 from google.cloud import texttospeech
 
-# Minimal BaseTool definition to replace missing import
-class BaseTool:
+class VoiceTutorTool:
     def __init__(self):
-        pass
-
-# Dialect prosody settings
-DIALECT_PROSODY = {
-    "andhra": {
-        "rate": "medium",
-        "pitch": "+2st"
-    },
-    "telangana": {
-        "rate": "slow",
-        "pitch": "-2st"
-    },
-    "neutral": {
-        "rate": "medium",
-        "pitch": "0st"
-    }
-}
-
-class VoiceTutorTool(BaseTool):
-    name = "Voice Tutor Tool"
-    description = "Converts text/lesson content into region-specific voice with SSML prosody"
-    
-    def __init__(self):
-        super().__init__()
-        # Initialize GCP TTS client
         self.client = texttospeech.TextToSpeechClient()
+        self.audio_output_dir = "generated_audio"
+        os.makedirs(self.audio_output_dir, exist_ok=True)
 
-    def _get_prosody_settings(self, dialect: str):
-        return DIALECT_PROSODY.get(dialect.lower(), DIALECT_PROSODY["neutral"])
+    def generate_voice_tutor(self, text: str, dialect: str = "default") -> dict:
+        # Build SSML with dialect-specific prosody or voice selection here
+        ssml = self._build_ssml(text, dialect)
 
-    def _wrap_ssml(self, text: str, dialect: str):
-        prosody = self._get_prosody_settings(dialect)
-        return f"""
-            <speak>
-                <prosody rate="{prosody['rate']}" pitch="{prosody['pitch']}">
-                    {text}
-                </prosody>
-            </speak>
-        """
-
-    def _synthesize_speech(self, ssml: str):
         synthesis_input = texttospeech.SynthesisInput(ssml=ssml)
-        voice = texttospeech.VoiceSelectionParams(
-            language_code="en-IN",
-            ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
-        )
-        audio_config = texttospeech.AudioConfig(
-            audio_encoding=texttospeech.AudioEncoding.MP3
-        )
+
+        voice_params = self._get_voice_params(dialect)
+        audio_config = texttospeech.AudioConfig(audio_encoding=texttospeech.AudioEncoding.MP3)
 
         response = self.client.synthesize_speech(
             input=synthesis_input,
-            voice=voice,
+            voice=voice_params,
             audio_config=audio_config
         )
 
-        return response.audio_content
+        file_name = f"{uuid.uuid4()}.mp3"
+        file_path = os.path.join(self.audio_output_dir, file_name)
 
-    def run(self, prompt: str, dialect: str = "neutral"):
-        try:
-            # Wrap prompt with SSML for prosody
-            ssml_text = self._wrap_ssml(prompt, dialect)
+        with open(file_path, "wb") as out:
+            out.write(response.audio_content)
 
-            # Synthesize speech audio content
-            audio_content = self._synthesize_speech(ssml_text)
+        return {
+            "ssml": ssml,
+            "audio_file": file_path,
+            "dialect": dialect
+        }
 
-            # Save audio temporarily to a file
-            with NamedTemporaryFile(delete=False, suffix=".mp3") as out:
-                out.write(audio_content)
-                out.flush()
-                audio_path = out.name
+    def _build_ssml(self, text: str, dialect: str) -> str:
+        # Customize SSML here based on dialect
+        # Example minimal SSML wrapper:
+        return f"<speak>{text}</speak>"
 
-            # Read audio and encode to base64 for transmission
-            with open(audio_path, "rb") as audio_file:
-                base64_audio = base64.b64encode(audio_file.read()).decode("utf-8")
-
-            # Clean up temporary audio file
-            os.remove(audio_path)
-
-            return {
-                "audio_base64": base64_audio,
-                "dialect": dialect,
-                "ssml_used": ssml_text.strip()
-            }
-
-        except Exception as e:
-            return {
-                "error": str(e),
-                "dialect": dialect,
-                "ssml_attempted": ssml_text if 'ssml_text' in locals() else None
-            }
+    def _get_voice_params(self, dialect: str) -> texttospeech.VoiceSelectionParams:
+        # Map dialect to Google TTS voice names or languages
+        voices = {
+            "default": texttospeech.VoiceSelectionParams(language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.FEMALE),
+            "telangana": texttospeech.VoiceSelectionParams(language_code="te-IN", ssml_gender=texttospeech.SsmlVoiceGender.FEMALE),
+            "andhra": texttospeech.VoiceSelectionParams(language_code="te-IN", ssml_gender=texttospeech.SsmlVoiceGender.MALE),
+        }
+        return voices.get(dialect.lower(), voices["default"])
