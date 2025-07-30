@@ -10,4 +10,6 @@ langchain-google-genai==0.0.9
 google-generativeai==0.3.2
 fastapi==0.115.9
 uvicorn==0.30.1
-chromadb==0.4.24        # ✅ Latest with fastapi pin
+chromadb>=0.5.23        # ✅ Compatible with crewai
+requests>=2.31.0         # For API calls
+pytest>=7.0.0           # For testing
