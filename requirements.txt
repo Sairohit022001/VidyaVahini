@@ -1,15 +1,43 @@
-crewai==0.141.0
+# Core framework dependencies - using older stable version
+crewai==0.80.0
 python-dotenv==1.0.1
-google-cloud-texttospeech==2.16.3
-google-api-core[grpc]==2.17.0
-grpcio==1.64.0
-google-auth==2.29.0
-protobuf==4.25.3
-pydantic==2.7.1
-langchain-google-genai==0.0.9
-google-generativeai==0.3.2
+
+# FastAPI and web framework
 fastapi==0.115.9
 uvicorn==0.30.1
-chromadb>=0.5.23        # ✅ Compatible with crewai
-requests>=2.31.0         # For API calls
-pytest>=7.0.0           # For testing
+requests>=2.31.0
+
+# NumPy version constraint to avoid compatibility issues
+numpy>=1.24.0,<2.0.0
+
+# Google Cloud and AI dependencies
+google-cloud-texttospeech>=2.16.0
+google-api-core[grpc]>=2.17.0
+google-auth>=2.29.0
+google-generativeai>=0.3.2
+langchain-google-genai>=0.0.9
+
+# Data and ML dependencies
+pydantic>=2.7.0,<3.0.0
+protobuf>=4.25.0,<6.0.0
+
+# Vector database - use specific compatible version
+chromadb==0.5.23
+
+# ONNX Runtime - specify compatible version
+onnxruntime==1.15.0
+
+# GRPC with compatible version
+grpcio>=1.60.0,<2.0.0
+
+# Additional required packages for the application
+structlog>=23.0.0
+
+# PyArrow for data processing
+pyarrow==17.0.0
+
+# socksio for network operations
+socksio>=1.0.0
+
+# Testing
+pytest>=7.0.0
