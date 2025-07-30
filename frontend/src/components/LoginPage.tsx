@@ -168,10 +168,21 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         role: 'ug' as UserRole,
         class: 'Engineering',
         subject: 'Computer Science'
+      },
+      guest: {
+        id: 'demo-guest',
+        name: 'Guest User',
+        email: 'guest@demo.com',
+        role: 'guest' as UserRole,
+        class: 'General',
+        subject: 'All Subjects'
       }
     };
     
-    onLogin(demoUsers[role]);
+    const selectedUser = demoUsers[role];
+    if (selectedUser) {
+      onLogin(selectedUser);
+    }
   };
 
   return (
