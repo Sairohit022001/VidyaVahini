@@ -112,7 +112,7 @@ from firestore.firebase_config import db
 
 
 
-    from firebase_admin import firestore
+from firebase_admin import firestore
 from firestore.firebase_config import db
 
 # -------------------------------

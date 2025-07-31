@@ -1,21 +1,22 @@
-from firestore_connector import db
-from datetime import datetime
-from google.cloud import firestore
+from firestore.firebase_config import db
+from firebase_admin import firestore  # for ArrayUnion and SERVER_TIMESTAMP
 
 def create_class(class_id: str, class_data: dict, teacher_uid: str, subject: str):
     db.collection("classes").document(class_id).set({
         **class_data,
         "students": [],
         "subjects": {subject: teacher_uid},
-        "created_at": datetime.utcnow(),
+        "created_at": firestore.SERVER_TIMESTAMP,
     })
 
     teacher_ref = db.collection("users").document(teacher_uid)
-    teacher_doc = teacher_ref.get().to_dict()
-    teacher_classes = teacher_doc.get("teacherOf", [])
-    if class_id not in teacher_classes:
-        teacher_classes.append(class_id)
-    teacher_ref.update({"teacherOf": teacher_classes})
+    teacher_doc = teacher_ref.get()
+    if teacher_doc.exists:
+        teacher_data = teacher_doc.to_dict()
+        teacher_classes = teacher_data.get("teacherOf", [])
+        if class_id not in teacher_classes:
+            teacher_classes.append(class_id)
+            teacher_ref.update({"teacherOf": teacher_classes})
 
 def add_student_to_class(class_id: str, student_id: str):
     class_ref = db.collection("classes").document(class_id)

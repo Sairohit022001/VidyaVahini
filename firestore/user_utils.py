@@ -1,4 +1,5 @@
-from firestore_connector import db, auth
+from firestore.firebase_config import db
+from firebase_admin import auth
 from datetime import datetime
 
 def register_user(email: str, password: str, role: str, user_data: dict):

@@ -5,9 +5,21 @@ google-api-core[grpc]==2.17.0
 grpcio==1.64.0
 google-auth==2.29.0
 protobuf==4.25.3
-pydantic==2.7.1
+
+# ✅ Updated to use Pydantic v2
+pydantic>=2.6.4
+pydantic-core>=2.16.3
+
+# ✅ Make FastAPI compatible with Pydantic v2
+fastapi>=0.104.0
+starlette>=0.27.0
+
+# ✅ Ensure compatibility with Pydantic v2 and crewai
 langchain-google-genai==0.0.9
 google-generativeai==0.3.2
-fastapi==0.115.9
+chromadb>=0.5.23
+
+# ✅ Server and utilities
 uvicorn==0.30.1
-chromadb==0.4.24        # ✅ Latest with fastapi pin
+requests>=2.31.0
+pytest>=7.0.0

@@ -48,3 +48,4 @@ venv/
 # OS Files
 .DS_Store
 Thumbs.db
+firebase/serviceAccountKey.json

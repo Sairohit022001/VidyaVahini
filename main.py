@@ -1,8 +1,6 @@
 from dotenv import load_dotenv
-load_dotenv()
-import os
-from dotenv import load_dotenv
 load_dotenv()  # This loads variables from .env into environment
+import os
 
 import sys
 import signal
@@ -13,12 +11,22 @@ from fastapi import FastAPI, Request, HTTPException, Depends, status, APIRouter
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, Field, validator, field_validator # Import field_validator
+from pydantic import BaseModel, Field, field_validator # Using Pydantic v2
 from typing import Optional, Dict, AsyncIterator # Import AsyncIterator
 from functools import wraps
 import structlog
 import traceback
-from contextlib import asynccontextmanager 
+from contextlib import asynccontextmanager
+from users import router as user_router
+from fastapi.middleware.cors import CORSMiddleware
+
+# Logging setup (moved up to be available early)
+logging.basicConfig(
+    format="%(message)s",
+    stream=sys.stdout,
+    level=logging.INFO,
+)
+logger = structlog.get_logger("vidyavahini_main")
 
  
 from agents.lesson_planner_agent import lesson_planner_agent
@@ -40,6 +48,9 @@ from crewflows import Crew
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from llms.llm_config import custom_llm_config
 from routes.firestore_routes import router as firestore_router
+from firestore.user_utils import register_user
+from firestore.class_utils import create_class, add_student_to_class
+from firestore.quiz_utils import post_quiz_result
 
 
 
@@ -65,10 +76,6 @@ SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
 if not SARVAM_API_KEY:
     raise RuntimeError("SARVAM_API_KEY not set in environment")
 
-# Include your routes
-from routes import translate_routes
-app.include_router(translate_routes.router, prefix="/https://api.sarvam.ai/translate")
-
 # FastAPI Lifespan events
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -88,6 +95,22 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan # Pass the decorated lifespan function here
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "https://5173-firebase-vidyavahini-1752736180350.cluster-ubrd2huk7jh6otbgyei4h62ope.cloudworkstations.dev"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Include your routes after app is created
+from routes import translate_routes
+app.include_router(translate_routes.router, prefix="/api/translate")
 
 
 from fastapi.openapi.utils import get_openapi
@@ -128,6 +151,9 @@ app.include_router(
     prefix="/firestore",         # All endpoints will be under /firestore
     tags=["Firestore Operations"]
 )
+
+app.include_router(user_router)
+
 
 from fastapi import APIRouter, Header
 from pydantic import BaseModel
@@ -207,13 +233,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Logging setup
-logging.basicConfig(
-    format="%(message)s",
-    stream=sys.stdout,
-    level=logging.INFO,
-)
-logger = structlog.get_logger("vidyavahini_main")
+# Logging setup already done above
 
 MAX_PROMPT_LENGTH = 2000
 API_KEY = os.getenv("VIDYAVAHINI_API_KEY")
@@ -342,7 +362,17 @@ def get_allowed_agents(user_role: str, user_level: Optional[int]):
         # "gamification_agent", 
     }
 
-    
+    # Return appropriate agent set based on user role and level
+    if user_role == "teacher":
+        return teacher_agents
+    elif user_role == "student":
+        if user_level is not None and user_level > 10:
+            return basic_agents | mid_agents  # Union of basic and mid agents
+        else:
+            return basic_agents
+    else:
+        # Default to basic agents for unknown roles
+        return basic_agents
 
 
 @app.post("/manage-content")

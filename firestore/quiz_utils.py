@@ -1,4 +1,4 @@
-from firestore_connector import db
+from firestore.firebase_config import db
 from datetime import datetime
 
 def post_quiz_result(teacher_uid: str, class_id: str, subject: str, quiz_data: dict):

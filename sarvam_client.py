@@ -4,15 +4,23 @@ import os
 SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
 
 def sarvam_translate(text: str, source_lang: str, target_lang: str):
+    if not SARVAM_API_KEY:
+        return {"error": "SARVAM_API_KEY not configured"}
+    
     url = "https://api.sarvam.ai/translate"  
     headers = {
-        "Authorization": f"Bearer {SARVAM_API_KEY}",
+        "api-subscription-key": SARVAM_API_KEY,
         "Content-Type": "application/json"
     }
     payload = {
-        "text": text,
-        "source_lang": source_lang, 
-        "target_lang": target_lang    
+        "input": text,
+        "source_language_code": source_lang, 
+        "target_language_code": target_lang    
     }
-    response = requests.post(url, headers=headers, json=payload)
-    return response.json()
+    
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Translation request failed: {str(e)}"}
