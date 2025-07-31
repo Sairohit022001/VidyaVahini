@@ -1,0 +1,95 @@
+[33mdb7dea0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: reset: moving to origin/main
+[33mc9d6202[m HEAD@{1}: commit: Changes before Firebase Studio auto-run
+[33me9cfe2f[m HEAD@{2}: commit: Changes before Firebase Studio auto-run
+[33mdb7dea0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{3}: reset: moving to HEAD~1
+[33m830e6cb[m HEAD@{4}: pull origin main: Fast-forward
+[33mca63dce[m HEAD@{5}: reset: moving to HEAD~1
+[33mdb7dea0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{6}: pull --tags origin main: Fast-forward
+[33macb7d03[m HEAD@{7}: pull --tags origin main (finish): returning to refs/heads/main
+[33macb7d03[m HEAD@{8}: pull --tags origin main (pick): "Integrated Sarvam API"
+[33mba8a00f[m HEAD@{9}: pull --tags origin main (start): checkout ba8a00f92d3d04a664b15496dc905c9e04cfa824
+[33m3ce89d8[m HEAD@{10}: commit: "Integrated Sarvam API"
+[33m206baa9[m HEAD@{11}: pull origin main (finish): returning to refs/heads/main
+[33m206baa9[m HEAD@{12}: pull origin main (pick): "Updated agent files"
+[33mdc2e849[m HEAD@{13}: pull origin main (pick): "Updated voice_tutor_agent"
+[33mca48ad2[m HEAD@{14}: pull origin main (start): checkout ca48ad25e2a5caa9b34e44a6634d9eb473959521
+[33m9c676c9[m HEAD@{15}: commit: "Updated agent files"
+[33m57e787f[m HEAD@{16}: commit: "Updated voice_tutor_agent"
+[33ma767610[m HEAD@{17}: commit: "Updated course_planner_agent"
+[33m0a9a387[m HEAD@{18}: commit: "Updated course_planner_agent"
+[33m0e9c86c[m HEAD@{19}: commit: "Updated course_planner_agent"
+[33m5002d94[m HEAD@{20}: checkout: moving from dev to main
+[33m36c26b7[m[33m ([m[1;31morigin/dev[m[33m, [m[1;32mdev[m[33m)[m HEAD@{21}: checkout: moving from main to dev
+[33m5002d94[m HEAD@{22}: commit: "Updated project files"
+[33m4e339a7[m HEAD@{23}: reset: moving to HEAD
+[33m4e339a7[m HEAD@{24}: reset: moving to HEAD
+[33m4e339a7[m HEAD@{25}: pull origin main: Fast-forward
+[33mbe2799a[m HEAD@{26}: pull origin main: Fast-forward
+[33mcb2c4f7[m HEAD@{27}: pull origin main: Fast-forward
+[33m112f2f2[m HEAD@{28}: commit: "Updated project structure and files"
+[33m36c26b7[m[33m ([m[1;31morigin/dev[m[33m, [m[1;32mdev[m[33m)[m HEAD@{29}: checkout: moving from dev to main
+[33m36c26b7[m[33m ([m[1;31morigin/dev[m[33m, [m[1;32mdev[m[33m)[m HEAD@{30}: merge main: Fast-forward
+[33m8acbf03[m HEAD@{31}: checkout: moving from main to dev
+[33m36c26b7[m[33m ([m[1;31morigin/dev[m[33m, [m[1;32mdev[m[33m)[m HEAD@{32}: commit: "Updated telangana_dialect_map"
+[33m70aa4bc[m HEAD@{33}: commit: "Completed Firestore integration"
+[33ma72ea08[m HEAD@{34}: pull origin main: Fast-forward
+[33m9f77856[m HEAD@{35}: checkout: moving from main to main
+[33m9f77856[m HEAD@{36}: commit: "updated requirements.txt"
+[33mcbfe345[m HEAD@{37}: commit: "Updated requirements.txt"
+[33m48470f5[m HEAD@{38}: commit: "Updated requirements.txt"
+[33m8acbf03[m HEAD@{39}: checkout: moving from main to main
+[33m8acbf03[m HEAD@{40}: merge dev: Fast-forward
+[33m8137633[m HEAD@{41}: checkout: moving from dev to main
+[33m8acbf03[m HEAD@{42}: pull origin main --no-rebase: Merge made by the 'ort' strategy.
+[33m2f0599a[m HEAD@{43}: checkout: moving from dev to dev
+[33m2f0599a[m HEAD@{44}: checkout: moving from dev to dev
+[33m2f0599a[m HEAD@{45}: checkout: moving from main to dev
+[33m8137633[m HEAD@{46}: pull --tags origin main: Fast-forward
+[33m707f9b8[m HEAD@{47}: checkout: moving from dev to main
+[33m2f0599a[m HEAD@{48}: checkout: moving from main to dev
+[33m707f9b8[m HEAD@{49}: pull origin main: Fast-forward
+[33m55e5cf3[m HEAD@{50}: checkout: moving from dev to main
+[33m2f0599a[m HEAD@{51}: commit: "Updated requirements.txt"
+[33mbba05de[m HEAD@{52}: commit: "Updateed requirements.txt"
+[33m707f9b8[m HEAD@{53}: pull origin main: Fast-forward
+[33m02b8248[m HEAD@{54}: commit: :Updated project structure"
+[33m55e5cf3[m HEAD@{55}: checkout: moving from main to dev
+[33m55e5cf3[m HEAD@{56}: pull origin main: Fast-forward
+[33m8278303[m HEAD@{57}: checkout: moving from dev to main
+[33m55e5cf3[m HEAD@{58}: checkout: moving from dev to dev
+[33m55e5cf3[m HEAD@{59}: checkout: moving from dev to dev
+[33m55e5cf3[m HEAD@{60}: pull origin main: Fast-forward
+[33m76d63bf[m HEAD@{61}: checkout: moving from dev to dev
+[33m76d63bf[m HEAD@{62}: commit: "Updated files for deployment"
+[33m6492914[m HEAD@{63}: commit: Updated main.py file with user based agent access code
+[33mf5cff63[m HEAD@{64}: commit: Updated main.py
+[33me0237f6[m HEAD@{65}: pull origin main: Fast-forward
+[33m3f962bb[m HEAD@{66}: checkout: moving from dev to dev
+[33m3f962bb[m HEAD@{67}: commit (merge): Merge branch 'main' of https://github.com/Sairohit022001/VidyaVahini into dev
+[33m444e4ed[m HEAD@{68}: checkout: moving from dev to dev
+[33m444e4ed[m HEAD@{69}: commit: "Updated agent/tool files"
+[33m54fe64a[m HEAD@{70}: commit: Updated agents and tools after removing keys, fixed JSON errors
+[33mdf617f3[m HEAD@{71}: pull origin main: Fast-forward
+[33mf56d99c[m HEAD@{72}: pull origin main: Fast-forward
+[33m98bd358[m HEAD@{73}: checkout: moving from dev to dev
+[33m98bd358[m HEAD@{74}: checkout: moving from dev to dev
+[33m98bd358[m HEAD@{75}: commit: Established FastAPI server
+[33m903de52[m HEAD@{76}: reset: moving to HEAD
+[33m903de52[m HEAD@{77}: commit: Deleted Docs folder + Updated lesson planner and voice tutor tools
+[33m6950fc2[m HEAD@{78}: commit: Pushed only required updates: lesson planner and voice tutor changes
+[33m2cef259[m HEAD@{79}: commit: Update .gitignore to exclude virtualenv and pycache
+[33m3baffe3[m HEAD@{80}: pull origin main: Fast-forward
+[33m97c084f[m HEAD@{81}: checkout: moving from dev to dev
+[33m97c084f[m HEAD@{82}: commit: "Updated voice_tutor_tool"
+[33mfddf10a[m HEAD@{83}: commit: Removed tracked secrets and added .env to .gitignore
+[33m8278303[m HEAD@{84}: reset: moving to HEAD
+[33m8278303[m HEAD@{85}: reset: moving to main
+[33mdef1e35[m HEAD@{86}: checkout: moving from main to dev
+[33m8278303[m HEAD@{87}: reset: moving to HEAD
+[33m8278303[m HEAD@{88}: pull origin main: Fast-forward
+[33m649b869[m HEAD@{89}: reset: moving to HEAD
+[33m649b869[m HEAD@{90}: checkout: moving from main to main
+[33m649b869[m HEAD@{91}: commit: "Updated project structure and installed dependencies so we can start backend in functionsw folders"
+[33md559d02[m HEAD@{92}: commit: "Updated firebase structure ""
+[33m1f5c9b0[m HEAD@{93}: commit: Changes before Firebase Studio auto-run
+[33m1744df2[m HEAD@{94}: clone: from https://github.com/Sairohit022001/VidyaVahini

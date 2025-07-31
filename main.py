@@ -98,15 +98,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://5173-firebase-vidyavahini-1752736180350.cluster-ubrd2huk7jh6otbgyei4h62ope.cloudworkstations.dev"
-    ],
+    allow_origins=["http://localhost:3000"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # Include your routes after app is created
 from routes import translate_routes
