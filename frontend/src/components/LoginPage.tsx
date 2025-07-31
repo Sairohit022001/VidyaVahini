@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { User, UserRole } from '../App';
 import axios from 'axios';
+import { auth } from '../firebase-config'; // Import auth from your firebase-config file
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Import signInWithEmailAndPassword
 
 interface LoginPageProps {
   onLogin: (user: User) => void;
@@ -30,7 +32,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     if (!/[A-Z]/.test(pass)) return 'Password must contain at least one uppercase letter';
     if (!/[a-z]/.test(pass)) return 'Password must contain at least one lowercase letter';
     if (!/[0-9]/.test(pass)) return 'Password must contain at least one number';
-    if (!/[!@#$%^&*]/.test(pass)) return 'Password must contain at least one special character (!@#$%^&*)';
+    if (!/[!@#$%^&*]/.test(pass)) return 'Password must contain at least one special character (!@#$%^&*)\';
     return '';
   };
 
@@ -60,6 +62,11 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     setPasswordError('');
 
     try {
+      // TODO: Implement Firebase createUserWithEmailAndPassword for registration
+      // After creating user in Firebase, you might need to send additional
+      // user data (name, role, grade, studentId) to your backend to store
+      // in your database.
+
       const userData: any = {
         name: name,
       };
@@ -71,21 +78,22 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
       const payload = {
         email: email,
-        password: password,
+        password: password, // You might not need to send password to backend if using Firebase Auth
         role: userType,
         user_data: userData,
       };
 
       const response = await axios.post('http://localhost:8000/register', payload);
-      
+
       alert('Registered successfully!');
-      
+
       // Switch to login mode after successful registration
       setIsSignUp(false);
       setPassword('');
       setName('');
       setGrade('');
       setStudentId('');
+      setUserType('student');
 
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -109,35 +117,70 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     setIsLoading(true);
 
     try {
-      const formData = {
-        email: email,
-        password: password,
+      // Use Firebase authentication
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // You can access user information from the user object
+      // For example: user.uid, user.email, user.displayName, etc.
+
+      // If you need to get additional user data (like role, grade, studentId)
+      // from your backend database after Firebase authentication, you can
+      // make an API call here using the user.uid or user.email.
+      // For now, I'll create a basic user object.
+
+      // Assuming you have a way to get the user's role after Firebase login
+      // This might involve reading from your backend database using the user.uid
+      let userRole: UserRole = 'student'; // Default role
+
+      // Example of fetching role from a hypothetical backend endpoint
+      // const backendResponse = await axios.get(`http://localhost:8000/users/${user.uid}`);
+      // userRole = backendResponse.data.role;
+
+      const authenticatedUser: User = {
+        id: user.uid,
+        name: user.displayName || user.email || 'User', // Use display name if available, otherwise email
+        email: user.email || '',
+        role: userRole, // Assign the determined role
+        class: userRole === 'teacher' ? 'Class 6D' : 'Class 6', // Placeholder class
+        subject: userRole === 'teacher' ? 'Mathematics' : 'Science' // Placeholder subject
       };
 
-      const response = await axios.post('http://localhost:8000/login', formData);
-      const { token, role, user_data } = response.data;
-
-      // Store token and role in localStorage
+      // Store token (Firebase ID token) and role in localStorage
+      const token = await user.getIdToken();
       localStorage.setItem('token', token);
-      localStorage.setItem('role', role);
+      localStorage.setItem('role', userRole); // Store the determined role
+
 
       alert('Login successful!');
-
-      // Create user object for the app
-      const user: User = {
-        id: user_data?.id || 'user-1',
-        name: user_data?.name || email.split('@')[0],
-        email: email,
-        role: role as UserRole,
-        class: role === 'teacher' ? 'Class 6D' : `Class ${user_data?.grade || '6'}`,
-        subject: role === 'teacher' ? 'Mathematics' : 'Science'
-      };
-
-      onLogin(user);
+      onLogin(authenticatedUser);
 
     } catch (error: any) {
       console.error('Login error:', error);
-      alert('Login failed: ' + (error.response?.data?.detail || 'Invalid credentials'));
+      // Handle Firebase authentication errors
+      let errorMessage = 'Login failed. Please check your credentials.';
+      if (error.code) {
+        switch (error.code) {
+          case 'auth/user-not-found':
+            errorMessage = 'No user found with this email.';
+            break;
+          case 'auth/wrong-password':
+            errorMessage = 'Incorrect password.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Invalid email address.';
+            break;
+           case 'auth/invalid-credential': // Added for potentially newer Firebase versions
+            errorMessage = 'Invalid credentials.';
+            break;
+          default:
+            errorMessage = error.message;
+            break;
+        }
+      } else if (error.message) { // Fallback for errors without a code
+           errorMessage = error.message;
+      }
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -178,7 +221,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         subject: 'All Subjects'
       }
     };
-    
+
     const selectedUser = demoUsers[role];
     if (selectedUser) {
       onLogin(selectedUser);
@@ -197,7 +240,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         <div className="absolute top-1/2 left-1/4 text-4xl opacity-10 rotate-12">🎓</div>
         <div className="absolute top-1/3 right-1/3 text-5xl opacity-10 -rotate-45">📖</div>
         <div className="absolute bottom-1/3 left-1/2 text-3xl opacity-10 rotate-90">🖊️</div>
-        
+
         {/* Floating geometric shapes */}
         <div className="absolute top-20 right-1/4 w-16 h-16 border-2 border-blue-200 opacity-20 rotate-45"></div>
         <div className="absolute bottom-32 left-1/3 w-20 h-20 border-2 border-purple-200 opacity-20 rounded-full"></div>
@@ -306,7 +349,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 </>
               )}
 
-              <Button 
+              <Button
                 onClick={isSignUp ? handleRegister : handleLogin}
                 className="w-full"
                 disabled={isLoading}
