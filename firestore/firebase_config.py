@@ -1,13 +1,14 @@
 import os
-from dotenv import load_dotenv
-from firebase_admin import credentials, initialize_app, firestore
+import firebase_admin
+from firebase_admin import credentials, firestore
 
-load_dotenv()
-cred_path = os.getenv("serviceAccountKey")
-if not cred_path or not os.path.exists(cred_path):
-    raise FileNotFoundError(f"Service account key file not found at: {cred_path}")
+# ✅ Load key file path dynamically
+key_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+cred = credentials.Certificate(key_path)
 
-cred = credentials.Certificate(cred_path)
-initialize_app(cred)
+# ✅ Safe init: only initialize if not already initialized
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
 
-db = firestore.client()  # <--- Add this to initialize Firestore client and expose `db`
+# ✅ Get Firestore client
+db = firestore.client()

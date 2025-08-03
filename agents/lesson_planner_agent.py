@@ -9,14 +9,17 @@ from tasks.lesson_planner_tasks import generate_lesson_task
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from langchain_google_genai import ChatGoogleGenerativeAI
 
+
 # Load API key from env
 google_api_key = os.getenv("GOOGLE_API_KEY")
+
 
 # Memory handler
 memory_handler = LocalMemoryHandler(
     session_id="teacher_lesson_session",
     file_path="memory/lesson_planner_memory.json"
 )
+
 
 # LLM config
 llm = ChatGoogleGenerativeAI(
@@ -25,14 +28,21 @@ llm = ChatGoogleGenerativeAI(
     temperature=0.3
 )
 
+
 # Tool for lesson generation
 lesson_tool = LessonGenerationTool()
+
 
 class LessonPlannerAgent(Agent):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._logger = logging.getLogger(__name__)
 
-    async def process(self, inputs: dict):
+    @property
+    def name(self):
+        return self._name
+
+    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         topic = inputs.get("topic")
         level = inputs.get("level") or "Medium"
         dialect = inputs.get("dialect", "default")
@@ -50,7 +60,7 @@ class LessonPlannerAgent(Agent):
 
         try:
             result = await asyncio.to_thread(lesson_tool.run, context)
-            logging.info(f"LessonTool result: {result}")
+            self._logger.info(f"LessonTool result: {result}")
 
             if not result:
                 return {"error": "LessonGenerationTool returned empty result"}
@@ -61,7 +71,7 @@ class LessonPlannerAgent(Agent):
             return result
 
         except Exception as e:
-            logging.error(f"LessonPlannerAgent process() failed: {e}", exc_info=True)
+            self._logger.error(f"LessonPlannerAgent process() failed: {e}", exc_info=True)
             return {"error": f"LessonPlannerAgent process() failed: {str(e)}"}
 
 
@@ -69,8 +79,8 @@ class LessonPlannerAgent(Agent):
 lesson_planner_agent = LessonPlannerAgent(
     name="lesson_planner_agent",
     role="AI co-teacher that helps educators design structured lessons, quizzes, stories, and visual content.",
-    goal="""...""",  
-    backstory="""...""",  
+    goal="Assists teachers by generating tailored lesson plans for multi-grade classrooms.",
+    backstory="A digital AI co-teacher specialized in lesson generation for regional dialect contexts.",
     memory=True,
     memory_handler=memory_handler,
     allow_delegation=True,
@@ -84,8 +94,11 @@ lesson_planner_agent = LessonPlannerAgent(
         "executor_type": "kirchhoff-async"
     },
     user_type="teacher",
-    metadata={ ... }  # unchanged
+    metadata={
+        # Your existing metadata
+    }
 )
+
 
 # Inputs
 lesson_planner_agent.add_input("topic")
@@ -93,6 +106,7 @@ lesson_planner_agent.add_input("level")
 lesson_planner_agent.add_input("dialect")
 lesson_planner_agent.add_input("context_from_doc")
 lesson_planner_agent.add_input("MultimodalResearchAgent")
+
 
 # Outputs
 lesson_planner_agent.add_output("lesson_plan_json")
@@ -105,8 +119,10 @@ lesson_planner_agent.add_output("quiz_questions")
 lesson_planner_agent.add_output("regional_language_support")
 lesson_planner_agent.add_output("offline_exportable_content")
 
+
 # Optional: Sync wrapper for Swagger/cURL
-def sync_process(self, inputs: dict):
+def sync_process(self, inputs: Dict[str, Any]):
     return asyncio.run(self.process(inputs))
+
 
 lesson_planner_agent.sync_process = types.MethodType(sync_process, lesson_planner_agent)

@@ -1,29 +1,42 @@
 from crewflows import Agent
 from crewflows.memory.local_memory_handler import LocalMemoryHandler
 from tools.student_level_analytics_tool import student_level_analytics_tool
-from tasks.student_level_analytics_task import StudentLevelAnalyticsTask  # import class only
+from tasks.student_level_analytics_task import StudentLevelAnalyticsTask
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
-load_dotenv()
 import os
-google_api_key = os.getenv("GOOGLE_API_KEY")
+from typing import Any, Dict, Optional
 
-# Initialize memory handler for Student Level Analytics Agent
+load_dotenv()
+
+# Use consistent key for Google API — adjust if both keys are required
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+if not GOOGLE_API_KEY:
+    raise EnvironmentError("Required Google API key (GOOGLE_API_KEY or GEMINI_API_KEY) not set")
+
+
+# Initialize memory handler
 memory_handler = LocalMemoryHandler(
     session_id="student_analytics_session",
     file_path="memory/student_analytics_memory.json"
 )
 
-# Create a global instance of the task
+
+# Instantiate the global task once
 student_analytics_task = StudentLevelAnalyticsTask()
 
-class StudentLevelAnalyticsAgent(Agent):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-    async def process(self, inputs: dict):
+class StudentLevelAnalyticsAgent(Agent):
+    def __init__(self, *args, name: str = "student_level_analytics_agent", **kwargs):
+        super().__init__(*args, name=name, **kwargs)
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         try:
-            # Extract relevant input data for analysis
             quiz_history = inputs.get("quiz_history", {})
             student_id = inputs.get("student_id")
             timeframe = inputs.get("timeframe", "last_month")
@@ -33,43 +46,49 @@ class StudentLevelAnalyticsAgent(Agent):
                 "quiz_history": quiz_history,
                 "student_id": student_id,
                 "timeframe": timeframe,
-                "additional_context": additional_context
+                "additional_context": additional_context,
             }
 
-            # Run the analysis task asynchronously using the global instance
             result = await student_analytics_task.run(context)
-
             return result
+
         except Exception as e:
             return {"error": f"StudentLevelAnalyticsAgent process() failed: {str(e)}"}
 
+
+# Instantiate the agent
 student_level_analytics_agent = StudentLevelAnalyticsAgent(
-    name="StudentLevelAnalyticsAgent",
-    role="""Per-student learning performance evaluator focused on individualized insights and recommendations:
-            1. Analyze quiz attempts and accuracy trends per student.
-            2. Identify learning gaps and misconceptions.
-            3. Track progress over different timeframes.
-            4. Provide personalized feedback and study recommendations.
-            5. Detect topic mastery and retention issues.
-            6. Support teachers with actionable insights for interventions.
-            7. Integrate with other agents for holistic learner profiles.
-            8. Adapt to student learning pace and style.
-            9. Maintain privacy and session-based memory securely.
-            10. Export findings in JSON for dashboards and reports.
-            """,
-    goal="""To empower educators by delivering in-depth, personalized student learning analytics,
-            highlighting strengths, weaknesses, and progress trajectories to inform targeted teaching strategies.""",
-    backstory="""StudentLevelAnalyticsAgent acts as the dedicated analytics partner,
-                helping teachers and students make sense of individual learning journeys.
-                It synthesizes quiz data, performance metrics, and contextual info into clear insights,
-                supporting continuous improvement and personalized learning experiences.
-                It complements other VidyaVāhinī agents by providing foundational data-driven feedback.""",
+    name="student_level_analytics_agent",
+    role=(
+        "Per-student learning performance evaluator focused on individualized insights and recommendations:\n"
+        "1. Analyze quiz attempts and accuracy trends per student.\n"
+        "2. Identify learning gaps and misconceptions.\n"
+        "3. Track progress over different timeframes.\n"
+        "4. Provide personalized feedback and study recommendations.\n"
+        "5. Detect topic mastery and retention issues.\n"
+        "6. Support teachers with actionable insights for interventions.\n"
+        "7. Integrate with other agents for holistic learner profiles.\n"
+        "8. Adapt to student learning pace and style.\n"
+        "9. Maintain privacy and session-based memory securely.\n"
+        "10. Export findings in JSON for dashboards and reports."
+    ),
+    goal=(
+        "To empower educators by delivering in-depth, personalized student learning analytics, "
+        "highlighting strengths, weaknesses, and progress trajectories to inform targeted teaching strategies."
+    ),
+    backstory=(
+        "StudentLevelAnalyticsAgent acts as the dedicated analytics partner, "
+        "helping teachers and students make sense of individual learning journeys. "
+        "It synthesizes quiz data, performance metrics, and contextual info into clear insights, "
+        "supporting continuous improvement and personalized learning experiences. "
+        "It complements other VidyaVāhinī agents by providing foundational data-driven feedback."
+    ),
     memory=True,
     memory_handler=memory_handler,
     allow_delegation=False,
     verbose=True,
-    tools=[student_level_analytics_tool],  # Tool instance assigned here
-    tasks=[student_analytics_task],       # Use the global instance here
+    tools=[student_level_analytics_tool],
+    tasks=[student_analytics_task],
     user_type="teacher",
     metadata={
         "analysis_type": "student",
@@ -77,13 +96,13 @@ student_level_analytics_agent = StudentLevelAnalyticsAgent(
     },
     llm=ChatGoogleGenerativeAI(
         model="models/gemini-2.5-pro",
-        google_api_key=os.getenv("GEMINI_API_KEY"),
+        google_api_key=GOOGLE_API_KEY,
         temperature=0.3
     ),
     respect_context_window=True,
     code_execution_config={"enabled": True, "executor_type": "kirchhoff-async"},
 )
 
-# Optional: dynamically assign the agent and tool to the task
+# Bind task references for integration
 student_analytics_task.agent = student_level_analytics_agent
 student_analytics_task.tool = student_level_analytics_tool

@@ -4,22 +4,26 @@ from tasks.ask_me_task import ask_question_task
 from tools.ask_me_tool import AskMeTool
 from langchain_google_genai import ChatGoogleGenerativeAI
 import os
-# Memory handler setup for session persistence
+from typing import Any, Dict
+
 memory_handler = LocalMemoryHandler(
     session_id="ask_me_agent_session",
     file_path="memory/ask_me_agent_memory.json"
 )
 
-# Tool setup
 askme_tool = AskMeTool()
 
 class AskMeAgent(Agent):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, name: str = "ask_me_agent", **kwargs):
+        super().__init__(*args, name=name, **kwargs)
+        self._name = name
 
-    async def process(self, inputs: dict):
+    @property
+    def name(self) -> str:
+        return self._name
+
+    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         try:
-            # You can adapt input keys as needed here
             question = inputs.get("user_question")
             dialect = inputs.get("user_dialect")
             grade = inputs.get("user_grade")
@@ -43,9 +47,9 @@ class AskMeAgent(Agent):
         except Exception as e:
             return {"error": f"AskMeAgent process() failed: {str(e)}"}
 
-# Instantiate the agent
+
 ask_me_agent = AskMeAgent(
-    name="AskMeAgent",
+    name="ask_me_agent",
     role="Contextual Q&A assistant for teachers and advanced learners",
     goal=(
         "1. Accurately answer academic questions using contextual memory.\n"
@@ -76,7 +80,7 @@ ask_me_agent = AskMeAgent(
     },
     llm=ChatGoogleGenerativeAI(
         model="models/gemini-2.5-pro",
-        google_api_key= os.getenv("GEMINI_API_KEY"),
+        google_api_key=os.getenv("GEMINI_API_KEY"),
         temperature=0.3
     ),
     respect_context_window=True,
@@ -86,7 +90,6 @@ ask_me_agent = AskMeAgent(
     },
 )
 
-# Agent input sources
 ask_me_agent.add_input([
     "LessonPlannerAgent",
     "QuizAgent",
@@ -103,7 +106,6 @@ ask_me_agent.add_input([
     "session_memory"
 ])
 
-# Agent output fields
 ask_me_agent.add_output([
     "contextual_answer",
     "source_explanation",
