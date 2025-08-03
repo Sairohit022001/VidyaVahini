@@ -30,7 +30,7 @@ logger = structlog.get_logger("vidyavahini_main")
 
  
 from agents.lesson_planner_agent import lesson_planner_agent
-from agents.story_teller_agent import run_story_teller_agent
+from agents.story_teller_agent import story_teller_agent
 from agents.quiz_agent import quiz_agent
 from agents.sync_agent import sync_agent
 from agents.course_planner_agent import course_planner_agent
@@ -98,15 +98,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://5173-firebase-vidyavahini-1752736180350.cluster-ubrd2huk7jh6otbgyei4h62ope.cloudworkstations.dev"
-    ],
+    allow_origins=["http://localhost:3000"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # Include your routes after app is created
 from routes import translate_routes
@@ -224,14 +220,7 @@ class CoursePlannerInput(BaseModel):
 async def root():
     return {"message": "Welcome to VidyaVāhinī Agentic Backend 🚀"}
 
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
 
 # Logging setup already done above
 
@@ -277,7 +266,7 @@ global_memory = LocalMemoryHandler(
 vidyavahini_crew = Crew(
     agents=[
         lesson_planner_agent,
-        run_story_teller_agent,
+        story_teller_agent,
         quiz_agent,
         sync_agent,
         course_planner_agent,
@@ -408,7 +397,7 @@ async def manage_content(request: Request):
 # Helper to map agent instance names to their string keys used above
 agent_instance_to_name = {
     lesson_planner_agent: "lesson_planner_agent",
-    run_story_teller_agent: "run_story_teller_agent",
+    story_teller_agent: "story_teller_agent",
     quiz_agent: "quiz_agent",
     sync_agent: "sync_agent",
     course_planner_agent: "course_planner_agent",
@@ -426,7 +415,7 @@ agent_instance_to_name = {
 # Dictionary mapping endpoint suffixes to agents (same as before)
 agent_endpoints = {
     "lesson_planner": lesson_planner_agent,
-    "run_story_teller_agent": run_story_teller_agent,
+    "story_teller": story_teller_agent,
     "quiz": quiz_agent,
     "sync": sync_agent,
     "course_planner": course_planner_agent,
@@ -553,111 +542,91 @@ async def run_crew(request: Request, crew_request: CrewRequest):
     if grade_match:
         grade = grade_match.group(1)
 
-    # Create comprehensive inputs for all agents
     comprehensive_inputs = {
-        "prompt": crew_request.prompt,
-        
-        # For LessonPlannerAgent
-        "topic": topic,
-        "level": grade,  # LessonPlannerAgent uses "level" not "grade"
-        "dialect": "English",  # Default to English for hackathon
-        
-        # Sample lesson plan structure for dependent agents
-        "lesson_plan_json": {
-            "title": f"Introduction to {topic.title()}",
-            "grade": grade,
-            "subject": topic,
-            "sections": [
-                {
-                    "heading": "Introduction",
-                    "content": f"Welcome to learning about {topic}!",
-                    "duration": "10 minutes"
-                },
-                {
-                    "heading": "Main Concepts",
-                    "content": f"Key concepts about {topic}...",
-                    "duration": "20 minutes"
-                },
-                {
-                    "heading": "Activities",
-                    "content": f"Fun activities related to {topic}...",
-                    "duration": "15 minutes"
-                },
-                {
-                    "heading": "Summary",
-                    "content": f"What we learned about {topic}.",
-                    "duration": "5 minutes"
-                }
-            ]
-        },
-        
-        # For StoryTellerAgent and QuizAgent
-        "story_body": f"Once upon a time, there was a curious student who wanted to learn about {topic}...",
-        
-        # For TeacherDashboardAgent
-        "quiz_data": {
-            "total_students": 25,
-            "completed_quizzes": 20,
-            "results": [
-                {"student_id": f"student_{i}", "score": 85 + (i % 15)} 
-                for i in range(1, 21)
-            ]
-        },
-        "student_levels": {f"student_{i}": 7 + (i % 4) for i in range(1, 26)},
-        "predictive_data": {
-            "engagement_scores": [0.8, 0.7, 0.9, 0.6, 0.8],
-            "completion_rates": [0.9, 0.8, 0.95, 0.7, 0.85]
-        },
-        
-        # For StudentLevelAnalyticsAgent
-        "student_id": "demo_student_001",
-        "quiz_results": [
-            {"quiz_id": "q1", "score": 85, "topic": topic},
-            {"quiz_id": "q2", "score": 78, "topic": topic}
-        ],
-        "interaction_data": {
-            "time_spent": 45,
-            "questions_asked": 3,
-            "help_requests": 1
-        },
-        
-        # For ContentCreatorAgent
-        "visual_prompts": [
-            f"Illustration of {topic} for grade {grade}",
-            f"Diagram showing {topic} concepts",
-            f"Interactive {topic} activity"
-        ],
-        
-        # For MultimodalResearchAgent
-        "context_from_doc": {
-            "source": "educational_standards",
-            "grade_level": grade,
-            "subject": topic
-        },
-        
-        # For VisualAgent
-        "story_text": f"Educational story about {topic} for grade {grade} students.",
-        
-        # Add any additional context from the request
-        **(crew_request.context or {})
+    "lesson_planner_agent": {
+        "description": "Generates a detailed lesson plan for a given topic.",
+        "output_format": {
+            "introduction": "Brief contextual overview of the topic.",
+            "deep_conceptual_understanding": "In-depth explanation of the core concepts.",
+            "summary": "Concise recap of the topic.",
+            "story_teller": "Narrative form to explain the concept.",
+            "research_paper": "Scholarly reference or insights.",
+            "visual_agent": "Image/chart/table or description of a visual aid."
+        }
+    },
+    "course_planner_agent": {
+        "description": "Creates a course schedule when teachers upload textbook index or PDF.",
+        "output_format": {
+            "weekly_schedule": "Week-wise lesson plan with topic coverage.",
+            "milestones": "Key learning goals per time block.",
+            "resources": "Suggested materials per section."
+        }
+    },
+    "quiz_agent": {
+        "description": "Generates quizzes based on lesson content.",
+        "output_format": {
+            "mcqs": "Multiple-choice questions.",
+            "fill_in_the_blanks": "Conceptual fill-in questions.",
+            "true_false": "True or false based concept testing."
+        }
+    },
+    "ask_me_agent": {
+        "description": "Answers student queries in natural language.",
+        "output_format": {
+            "answer": "Concise and accurate response.",
+            "references": "Optional source or explanation snippets."
+        }
+    },
+    "student_analytics_agent": {
+        "description": "Analyzes student performance and learning patterns.",
+        "output_format": {
+            "performance_report": "Individual and group-level analytics.",
+            "learning_gaps": "Detected topic-wise weaknesses.",
+            "recommendations": "Personalized improvement strategies."
+        }
+    },
+    "teacher_dashboard_agent": {
+        "description": "Provides insights and metrics to teachers on student engagement.",
+        "output_format": {
+            "engagement_overview": "Overall student activity levels.",
+            "topic_difficulty": "Topics students struggled with.",
+            "intervention_alerts": "Flagged areas needing teacher intervention."
+        }
+    },
+    "voice_tutor_agent": {
+        "description": "Reads lesson content aloud with regional prosody using Google TTS.",
+        "output_format": {
+            "audio_url": "Link to the generated speech output.",
+            "dialect_cluster": "Telangana or Andhra dialect",
+            "ssml": "Google SSML-enhanced speech markup"
+        }
+    },
+    "content_creator_agent": {
+        "description": "Creates customized educational content across modalities.",
+        "output_format": {
+            "text_content": "Lesson text or storytelling content.",
+            "images": "AI-generated educational visuals.",
+            "video_script": "Script for explainer video."
+        }
+    },
+    "predictive_analytics_agent": {
+        "description": "Predicts student progress and possible drop-offs.",
+        "output_format": {
+            "risk_score": "Probability of falling behind.",
+            "recommendations": "Early intervention plans.",
+            "trend_graphs": "Visual performance trends."
+        }
+    },
+    "gamification_agent": {
+        "description": "Suggests gamified tasks and rewards for better learning outcomes.",
+        "output_format": {
+            "game_ideas": "Activity-based or quiz-based games.",
+            "badges_rewards": "Suggested badges and reward logic.",
+            "progression_path": "Levels and achievements system."
+        }
     }
+}
 
-    # Create filtered crew with proper configuration
-    filtered_crew = Crew(
-        agents=filtered_agents,
-        verbose=True,
-        memory=True,
-        memory_handler=global_memory,
-        llm_config=custom_llm_config,
-        process_config={
-            "executor_type": "kirchhoff-async",
-            "auto_delegate": True,
-        },
-        crew_description=f"""
-        VidyaVāhinī filtered crew for {user_role} (level {user_level}).
-        Processing educational content about {topic} for grade {grade}.
-        """,
-    )
 
     try:
         result = await asyncio.wait_for(
@@ -714,85 +683,124 @@ signal.signal(signal.SIGINT, handle_shutdown)
 signal.signal(signal.SIGTERM, handle_shutdown)
 
 # CLI runner for manual testing with detailed prompts and comments
+# CLI runner for manual testing with detailed prompts and comments
 async def main():
-    test_prompt = "Prepare a summary lesson plan on photosynthesis for Grade 7."
+    test_prompt = "Prepare a comprehensive lesson experience on photosynthesis for Grade 7, including visuals, voice, and quizzes."
     logger.info("Starting VidyaVāhinī Crew CLI run...")
 
     try:
-        # Complete and detailed inputs for different agents in the crew
+        # Comprehensive input for all 14 VidyaVāhinī agents
         inputs = {
-            # Core topic details for lesson planning
+            # 1. Core topic inputs for LessonPlannerAgent
             "topic": "Photosynthesis",
-            "level": "7",  # Grade level, matching LessonPlannerAgent's expected key
-            "dialect": "Telangana",  # Regional dialect for culturally relevant explanations
-            
-            # Specific prompt for the lesson planner agent to generate an age & dialect-appropriate lesson plan
+            "level": "7",
+            "dialect": "Telangana",
+
+            # LessonPlannerAgent input with structure required by downstream agents
             "prompt": (
                 "Create a detailed lesson plan explaining photosynthesis for grade 7 students "
-                "speaking the Telangana dialect. Include introduction, key concepts, examples, "
-                "and a summary adapted to local cultural context."
+                "speaking the Telangana dialect. Include introduction, deep conceptual understanding, summary, "
+                "a story integrated within the lesson, visual ideas, and reference research articles."
             ),
 
-            # Lesson plan JSON structure example for agents that consume lesson data (e.g., StoryTellerAgent, QuizAgent)
             "lesson_plan_json": {
                 "title": "The Magical Process of Photosynthesis",
                 "sections": [
-                    {"heading": "Introduction", "content": "A brief introduction to the process of photosynthesis."},
-                    {"heading": "What is Needed?", "content": "Sunlight, water, and carbon dioxide are essential for photosynthesis."},
-                    {"heading": "The Process", "content": "Plants convert sunlight into energy by making food through photosynthesis."},
-                    {"heading": "Importance", "content": "Photosynthesis is vital because it provides oxygen and energy for life."}
+                    {"heading": "Introduction", "content": "An engaging start to what photosynthesis means."},
+                    {"heading": "Deep Conceptual Understanding", "content": "Detailed explanation of chlorophyll, stomata, and the light/dark reactions."},
+                    {"heading": "Summary", "content": "A wrap-up with key takeaways for students."},
+                    {"heading": "Story", "content": "A fictional tale about a plant named Tara who discovers photosynthesis."},
+                    {"heading": "Research Paper", "content": "Adapted snippets from academic articles on photosynthesis."},
+                    {"heading": "Visual Prompts", "content": "Use diagrams of sunlight absorption, leaf cross-section, and oxygen release."}
                 ]
             },
 
-            # Example story text for StoryTellerAgent
-            "story_body": (
-                "Once upon a time, there was a little plant who learned how to make food using sunlight, water, and air. "
-                "This amazing process is called photosynthesis."
-            ),
+            # 2. CoursePlannerAgent
+            "index_text": "Chapter 1: Photosynthesis\nChapter 2: Respiration\nChapter 3: Nutrition in Plants",
+            "preferred_schedule_weeks": 6,
 
-            # Quiz data placeholder for TeacherDashboardAgent and PredictiveAnalyticsAgent
+            # 3. QuizAgent
+            "quiz_request_topic": "Photosynthesis",
+            "quiz_difficulty": "medium",
+
+            # 4. AskMeAgent
+            "student_question": "Why do plants need sunlight for photosynthesis?",
+
+            # 5. StudentLevelAnalyticsAgent
+            "student_id": "student123",
+            "quiz_results": [
+                {"quiz_id": "qz001", "score": 85},
+                {"quiz_id": "qz002", "score": 65}
+            ],
+            "interaction_data": {
+                "video_watched": True,
+                "quiz_attempted": True,
+                "time_spent_minutes": 18
+            },
+
+            # 6. TeacherDashboardAgent
             "quiz_data": {
                 "total_students": 30,
                 "completed_quizzes": 25,
                 "results": [
-                    # Example student quiz result objects can be placed here
+                    {"student_id": "student123", "score": 85},
+                    {"student_id": "student124", "score": 72},
+                    # More entries can be added
                 ]
             },
 
-            # Student levels placeholder (can be populated with student proficiency data)
-            "student_levels": {
-                # e.g., "student123": "Intermediate"
-            },
+            # 7. VoiceTutorAgent
+            "ssml_text": (
+                "<speak>"
+                "Plants are amazing. <break time='500ms'/> They use sunlight to make their food. "
+                "<prosody rate='slow'>This is called photosynthesis.</prosody>"
+                "</speak>"
+            ),
+            "dialect": "Telangana",
 
-            # Predictive analytics data placeholder
-            "predictive_data": {
-                # e.g., predictions or trends data
-            },
-
-            # Student-specific data for StudentLevelAnalyticsAgent
-            "student_id": "student123",
-            "quiz_results": [
-                # Example quiz attempt records
-            ],
-            "interaction_data": {
-                # Example student interaction logs or analytics
-            },
-
-            # Visual prompts for ContentCreatorAgent for image or visual content generation
+            # 8. ContentCreatorAgent
             "visual_prompts": [
-                "Diagram of photosynthesis cycle",
-                "Sunlight shining on green leaves"
+                "Diagram of the photosynthesis process",
+                "Microscopic view of chloroplasts in a leaf",
+                "Comparison of day and night cycle in plants"
             ],
 
-            # Additional research context for MultimodalResearchAgent
-            "context_from_doc": {
-                # e.g., text snippets or document data related to photosynthesis
+            # 9. PredictiveAnalyticsAgent
+            "predictive_data": {
+                "student_trends": [
+                    {"student_id": "student123", "topic": "Photosynthesis", "confidence": "low"},
+                    {"student_id": "student124", "topic": "Photosynthesis", "confidence": "high"}
+                ]
             },
 
-            # Text for VisualAgent to generate visuals or stories with dialect adaptation
-            "story_text": "A captivating story highlighting the wonder of photosynthesis in nature.",
+            # 10. GamificationAgent
+            "gamify_topic": "Photosynthesis",
+            "grade_level": "7",
+            "student_engagement_stats": {
+                "games_played": 3,
+                "badges_earned": 2
+            },
 
-            # Other optional inputs as needed by agents can be added here
+            # 11. MultimodalResearchAgent
+            "context_from_doc": {
+                "source_snippets": [
+                    "Photosynthesis occurs in chloroplasts, primarily in leaf cells.",
+                    "It involves the conversion of light energy to chemical energy."
+                ]
+            },
+
+            # 12. VisualAgent
+            "story_text": "A journey through a leaf’s cell explaining how sunlight becomes sugar. Designed for Telangana dialect audience.",
+
+            # 13. SummaryAgent (part of LessonPlanner but can be separate if needed)
+            "summary_topic": "Photosynthesis",
+            "summary_style": "age-appropriate for Grade 7",
+
+            # 14. StoryTellerAgent (complementary to VisualAgent or embedded in LessonPlanner)
+            "story_body": (
+                "In a sunny forest, a young leaf named Tara wanted to help her tree grow big. "
+                "She discovered how to turn sunlight into sugar—a superpower called photosynthesis."
+            ),
         }
 
         # Run the crew with prepared inputs
@@ -804,7 +812,6 @@ async def main():
     except Exception as e:
         logger.error(f"Error running crew in CLI: {e}")
         return None
-
 
 if __name__ == "__main__":
     asyncio.run(main())

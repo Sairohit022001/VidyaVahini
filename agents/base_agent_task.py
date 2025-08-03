@@ -4,13 +4,26 @@ from crewflows import Agent
 class CrewBaseAgent(Agent, ABC):
     """
     Base class for all crewflows Agents in VidyaVāhinī.
-    Handles required 'goal' parameter and enforces process() implementation.
+    Handles required 'goal' and 'name' parameter and enforces process() implementation.
     """
 
-    def __init__(self, *args, goal=None, **kwargs):
+    def __init__(self, *args, name: str = None, goal: str = None, **kwargs):
         if goal is None:
             raise ValueError(f"Missing required 'goal' argument for {self.__class__.__name__}")
-        super().__init__(*args, goal=goal, **kwargs)
+        if not name:
+            raise ValueError(f"Missing required 'name' argument for {self.__class__.__name__}")
+
+        super().__init__(*args, **kwargs)  # Do NOT pass 'name' here!
+        self._name = name
+        self._goal = goal
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def goal(self) -> str:
+        return self._goal
 
     @abstractmethod
     async def process(self, inputs: dict) -> dict:
