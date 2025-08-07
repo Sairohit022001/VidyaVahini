@@ -5,12 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { User, UserRole } from '../App';
 import axios from 'axios';
-import { auth } from '../firebase-config'; // Import auth from your firebase-config file
-import { signInWithEmailAndPassword } from 'firebase/auth'; // Import signInWithEmailAndPassword
+import { auth } from '../firebase-config';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 interface LoginPageProps {
   onLogin: (user: User) => void;
 }
+
+const gradeOptions = [
+  '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'
+];
 
 export function LoginPage({ onLogin }: LoginPageProps) {
   const [email, setEmail] = useState('');
@@ -23,17 +27,22 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [passwordError, setPasswordError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const gradeOptions = [
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'
-  ];
-
   const validatePassword = (pass: string) => {
     if (pass.length < 8) return 'Password must be at least 8 characters long';
-    if (!/[A-Z]/.test(pass)) return 'Password must contain at least one uppercase letter';
     if (!/[a-z]/.test(pass)) return 'Password must contain at least one lowercase letter';
+    if (!/[A-Z]/.test(pass)) return 'Password must contain at least one uppercase letter';
     if (!/[0-9]/.test(pass)) return 'Password must contain at least one number';
-    if (!/[!@#$%^&*]/.test(pass)) return 'Password must contain at least one special character (!@#$%^&*)\';
+    if (!/[!@#$%^&*]/.test(pass)) return 'Password must contain at least one special character (!@#$%^&*)';
     return '';
+  };
+
+  const clearFields = () => {
+    setPassword('');
+    setName('');
+    setGrade('');
+    setStudentId('');
+    setPasswordError('');
+    setEmail('');
   };
 
   const handleRegister = async () => {
@@ -41,18 +50,15 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       alert('Please fill in all required fields');
       return;
     }
-
     if (!email.includes('@')) {
       alert('Please enter a valid email address');
       return;
     }
-
     const passwordValidation = validatePassword(password);
     if (passwordValidation) {
       setPasswordError(passwordValidation);
       return;
     }
-
     if (userType === 'student' && (!grade || !studentId)) {
       alert('Please fill in grade and student ID');
       return;
@@ -60,44 +66,38 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
     setIsLoading(true);
     setPasswordError('');
-
     try {
-      // TODO: Implement Firebase createUserWithEmailAndPassword for registration
-      // After creating user in Firebase, you might need to send additional
-      // user data (name, role, grade, studentId) to your backend to store
-      // in your database.
+      // 1. Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-      const userData: any = {
-        name: name,
-      };
+      // 2. Optionally update user profile with displayName
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { displayName: name });
+      }
 
+      // 3. Prepare user data to send to your backend (exclude password for security)
+      const userData: Record<string, any> = { name };
       if (userType === 'student') {
         userData.grade = parseInt(grade);
         userData.student_id = studentId;
       }
-
       const payload = {
-        email: email,
-        password: password, // You might not need to send password to backend if using Firebase Auth
+        uid: userCredential.user.uid,
+        email,
         role: userType,
         user_data: userData,
       };
 
-      const response = await axios.post('http://localhost:8000/register', payload);
+      // 4. Send user data to your backend API
+      await axios.post('http://localhost:8000/register', payload);
 
       alert('Registered successfully!');
-
-      // Switch to login mode after successful registration
       setIsSignUp(false);
-      setPassword('');
-      setName('');
-      setGrade('');
-      setStudentId('');
+      clearFields();
       setUserType('student');
-
     } catch (error: any) {
       console.error('Registration error:', error);
-      alert('Registration failed: ' + (error.response?.data?.detail || 'Something went wrong'));
+      alert('Registration failed: ' + (error.response?.data?.detail || error.message || 'Something went wrong'));
     } finally {
       setIsLoading(false);
     }
@@ -108,56 +108,35 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       alert('Please fill in all fields');
       return;
     }
-
     if (!email.includes('@')) {
       alert('Please enter a valid email address');
       return;
     }
-
     setIsLoading(true);
-
     try {
-      // Use Firebase authentication
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // You can access user information from the user object
-      // For example: user.uid, user.email, user.displayName, etc.
-
-      // If you need to get additional user data (like role, grade, studentId)
-      // from your backend database after Firebase authentication, you can
-      // make an API call here using the user.uid or user.email.
-      // For now, I'll create a basic user object.
-
-      // Assuming you have a way to get the user's role after Firebase login
-      // This might involve reading from your backend database using the user.uid
-      let userRole: UserRole = 'student'; // Default role
-
-      // Example of fetching role from a hypothetical backend endpoint
-      // const backendResponse = await axios.get(`http://localhost:8000/users/${user.uid}`);
-      // userRole = backendResponse.data.role;
+      // Fetch user role and other info from backend (replace URL as per your API)
+      const backendResponse = await axios.get(`http://localhost:8000/users/${user.uid}`);
+      const userRole: UserRole = backendResponse.data.role || 'student';
 
       const authenticatedUser: User = {
         id: user.uid,
-        name: user.displayName || user.email || 'User', // Use display name if available, otherwise email
+        name: user.displayName || user.email || 'User',
         email: user.email || '',
-        role: userRole, // Assign the determined role
-        class: userRole === 'teacher' ? 'Class 6D' : 'Class 6', // Placeholder class
-        subject: userRole === 'teacher' ? 'Mathematics' : 'Science' // Placeholder subject
+        role: userRole,
+        class: userRole === 'teacher' ? 'Class 6D' : 'Class 6',
+        subject: userRole === 'teacher' ? 'Mathematics' : 'Science'
       };
 
-      // Store token (Firebase ID token) and role in localStorage
       const token = await user.getIdToken();
       localStorage.setItem('token', token);
-      localStorage.setItem('role', userRole); // Store the determined role
-
-
+      localStorage.setItem('role', userRole);
       alert('Login successful!');
       onLogin(authenticatedUser);
-
     } catch (error: any) {
       console.error('Login error:', error);
-      // Handle Firebase authentication errors
       let errorMessage = 'Login failed. Please check your credentials.';
       if (error.code) {
         switch (error.code) {
@@ -170,15 +149,14 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           case 'auth/invalid-email':
             errorMessage = 'Invalid email address.';
             break;
-           case 'auth/invalid-credential': // Added for potentially newer Firebase versions
+          case 'auth/invalid-credential':
             errorMessage = 'Invalid credentials.';
             break;
           default:
             errorMessage = error.message;
-            break;
         }
-      } else if (error.message) { // Fallback for errors without a code
-           errorMessage = error.message;
+      } else if (error.message) {
+        errorMessage = error.message;
       }
       alert(errorMessage);
     } finally {
@@ -187,52 +165,47 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   };
 
   const handleDemoLogin = (role: UserRole) => {
-    const demoUsers = {
+    const demoUsers: Record<UserRole, User> = {
       student: {
         id: 'demo-student',
         name: 'Demo Student',
         email: 'student@demo.com',
-        role: 'student' as UserRole,
+        role: 'student',
         class: 'Class 8',
-        subject: 'Science'
+        subject: 'Science',
       },
       teacher: {
         id: 'demo-teacher',
         name: 'Demo Teacher',
         email: 'teacher@demo.com',
-        role: 'teacher' as UserRole,
+        role: 'teacher',
         class: 'Class 6D',
-        subject: 'Mathematics'
+        subject: 'Mathematics',
       },
       ug: {
         id: 'demo-ug',
         name: 'Demo UG Student',
         email: 'ug@demo.com',
-        role: 'ug' as UserRole,
+        role: 'ug',
         class: 'Engineering',
-        subject: 'Computer Science'
+        subject: 'Computer Science',
       },
       guest: {
         id: 'demo-guest',
         name: 'Guest User',
         email: 'guest@demo.com',
-        role: 'guest' as UserRole,
+        role: 'guest',
         class: 'General',
-        subject: 'All Subjects'
+        subject: 'All Subjects',
       }
     };
-
-    const selectedUser = demoUsers[role];
-    if (selectedUser) {
-      onLogin(selectedUser);
-    }
+    onLogin(demoUsers[role]);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       {/* Aesthetic Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-        {/* Background Elements */}
         <div className="absolute top-10 left-10 text-6xl opacity-10 rotate-12">📚</div>
         <div className="absolute top-32 right-20 text-4xl opacity-10 -rotate-12">✏️</div>
         <div className="absolute bottom-20 left-20 text-5xl opacity-10 rotate-45">💻</div>
@@ -240,7 +213,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         <div className="absolute top-1/2 left-1/4 text-4xl opacity-10 rotate-12">🎓</div>
         <div className="absolute top-1/3 right-1/3 text-5xl opacity-10 -rotate-45">📖</div>
         <div className="absolute bottom-1/3 left-1/2 text-3xl opacity-10 rotate-90">🖊️</div>
-
         {/* Floating geometric shapes */}
         <div className="absolute top-20 right-1/4 w-16 h-16 border-2 border-blue-200 opacity-20 rotate-45"></div>
         <div className="absolute bottom-32 left-1/3 w-20 h-20 border-2 border-purple-200 opacity-20 rounded-full"></div>
@@ -248,15 +220,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       </div>
 
       <div className="w-full max-w-md space-y-6 relative z-10">
-        {/* Logo and Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl tracking-tight">VIDYAVĀHINĪ</h1>
           <p className="text-muted-foreground">Sign in to continue your learning journey</p>
         </div>
-
-
-
-        {/* Main Login Card */}
         <Card className="bg-white/90 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>{isSignUp ? 'Sign Up' : 'Login'}</CardTitle>
@@ -265,12 +232,14 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* User Type Selection for Sign Up */}
             {isSignUp && (
               <div className="space-y-3">
                 <div>
                   <label className="text-sm font-medium">I am a:</label>
-                  <Select value={userType} onValueChange={(value: 'student' | 'teacher') => setUserType(value)}>
+                  <Select 
+                    value={userType} 
+                    onValueChange={(value) => setUserType(value as 'student' | 'teacher')}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -282,8 +251,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 </div>
               </div>
             )}
-
-            {/* Form Fields */}
             <div className="space-y-3">
               {isSignUp && (
                 <Input
@@ -293,14 +260,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   onChange={(e) => setName(e.target.value)}
                 />
               )}
-
               <Input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-
               <div>
                 <Input
                   type="password"
@@ -316,17 +281,15 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 )}
                 {isSignUp && (
                   <div className="text-xs text-muted-foreground mt-1">
-                    Password must be 8+ characters with uppercase, lowercase, number, and special character
+                    Password must be 8+ characters, include uppercase, lowercase, number, and special character
                   </div>
                 )}
               </div>
-
-              {/* Student-specific fields for registration */}
               {isSignUp && userType === 'student' && (
                 <>
                   <div>
                     <label className="text-sm font-medium">Grade:</label>
-                    <Select value={grade} onValueChange={setGrade}>
+                    <Select value={grade} onValueChange={val => setGrade(val)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select your grade" />
                       </SelectTrigger>
@@ -339,7 +302,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                       </SelectContent>
                     </Select>
                   </div>
-
                   <Input
                     type="text"
                     placeholder="Enter your Student ID"
@@ -348,7 +310,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   />
                 </>
               )}
-
               <Button
                 onClick={isSignUp ? handleRegister : handleLogin}
                 className="w-full"
@@ -357,17 +318,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 {isLoading ? 'Please wait...' : (isSignUp ? 'Sign Up' : 'Sign In')}
               </Button>
             </div>
-
             <div className="text-center">
               <Button
                 variant="link"
                 onClick={() => {
                   setIsSignUp(!isSignUp);
-                  setName('');
-                  setGrade('');
-                  setStudentId('');
+                  clearFields();
                   setUserType('student');
-                  setPasswordError('');
                 }}
                 className="text-sm"
                 disabled={isLoading}
@@ -375,6 +332,11 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
               </Button>
             </div>
+            {/* Uncomment demo buttons if need demo login */}
+            {/* <div className="flex justify-center gap-4 mt-3">
+              <Button onClick={() => handleDemoLogin('student')}>Demo Student</Button>
+              <Button onClick={() => handleDemoLogin('teacher')}>Demo Teacher</Button>
+            </div> */}
           </CardContent>
         </Card>
       </div>

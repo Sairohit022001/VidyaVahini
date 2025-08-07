@@ -1,8 +1,7 @@
-// src/api/axios.ts
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
   headers: {
     "x-api-key": "hackathon-demo-key-2025",
     "x-user-role": "teacher",

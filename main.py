@@ -96,9 +96,13 @@ app = FastAPI(
     lifespan=lifespan # Pass the decorated lifespan function here
 )
 
+origins = [
+    "https://5173-firebase-vidyavahini-1752736180350.cluster-ubrd2huk7jh6otbgyei4h62ope.cloudworkstations.dev"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
