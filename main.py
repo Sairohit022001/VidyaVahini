@@ -72,9 +72,9 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 llm = ChatGoogleGenerativeAI(google_api_key=google_api_key, model="models/gemini-2.5-pro") # Remove convert_system_message_to_human
 
-SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
-if not SARVAM_API_KEY:
-    raise RuntimeError("SARVAM_API_KEY not set in environment")
+# SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
+# if not SARVAM_API_KEY:
+#     raise RuntimeError("SARVAM_API_KEY not set in environment")
 
 # FastAPI Lifespan events
 @asynccontextmanager

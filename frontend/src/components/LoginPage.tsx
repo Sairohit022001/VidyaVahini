@@ -76,20 +76,25 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       }
 
       // 3. Prepare user data to send to your backend (exclude password for security)
-      const userData: Record<string, any> = { name };
+      const userData: Record<string, any> = { 
+        name,  // Include name in user_data
+        uid: userCredential.user.uid  // Move uid to user_data
+      };
       if (userType === 'student') {
         userData.grade = parseInt(grade);
         userData.student_id = studentId;
       }
+  
       const payload = {
-        uid: userCredential.user.uid,
         email,
+        password,  // ← Add password back
         role: userType,
+        name,      // ← Add name as direct field
         user_data: userData,
       };
-
+      
       // 4. Send user data to your backend API
-      await axios.post('http://localhost:8000/register', payload);
+      await axios.post('/register', payload);
 
       alert('Registered successfully!');
       setIsSignUp(false);

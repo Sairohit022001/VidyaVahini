@@ -31,6 +31,10 @@ export default defineConfig({
   ],
   server: {
     proxy: {
+      '/register': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      },
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
